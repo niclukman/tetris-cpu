@@ -1,0 +1,37 @@
+module alu (
+    input a[32],
+    input b[32],
+    input alufn[6],
+    output out[32],
+    output z,
+    output v,
+    output n
+) {
+    .a(a) {
+        .b(b) {
+            adder adder(#SIZE(32), .alufn0(alufn[0]))
+            multiplier multiplier
+            boolean boolean(.alufn(alufn))
+            shifter shifter(.alufn(alufn))
+        }
+    }
+    
+    compare compare(.z(adder.z), .v(adder.v), .n(adder.n), .alufn(alufn))
+    
+    mux2to1 math[32](.data0(adder.s), .data1(multiplier.mul), .s(32x{alufn[1]}))
+    mux4to1 op[32](.data0(math.y), .data1(boolean.bool), .data2(shifter.shift), .data3(c{31b0, compare.cmp}), .s0(32x{alufn[4]}), .s1(32x{alufn[5]}))
+    
+    always {
+        // implement alu logic here
+        out = 0 
+        z = 0
+        v = 0 
+        n = 0
+    
+        z = adder.z;
+        v = adder.v;
+        n = adder.n;
+    
+        out = op.y
+    }
+}

@@ -1,0 +1,27 @@
+module boolean #(
+    SIZE = 32 : SIZE > 0
+)(
+    input a[SIZE],
+    input b[SIZE],
+    input alufn[6],
+    output bool[SIZE]
+) {
+    
+    mux4to1 mux4to1_32[SIZE]
+    
+    always {
+        // implement boolean unit logic here
+        bool = 0
+        
+        mux4to1_32.data0 = 32x{alufn[0]}
+        mux4to1_32.data1 = 32x{alufn[1]}
+        mux4to1_32.data2 = 32x{alufn[2]}
+        mux4to1_32.data3 = 32x{alufn[3]}
+        
+        mux4to1_32.s0 = a
+        mux4to1_32.s1 = b
+        
+        bool = mux4to1_32.y
+    }
+    
+}

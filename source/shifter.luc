@@ -1,0 +1,80 @@
+module shifter (
+    input a[32],
+    input b[5],
+    input alufn[6],
+    output shift[32]
+) {
+
+    mux2to1 shift_16[32]
+    mux2to1 shift_8[32]
+    mux2to1 shift_4[32]
+    mux2to1 shift_2[32]
+    mux2to1 shift_1[32]
+    
+    always {
+        // implement shifter unit logic here
+        shift = 0
+        if (~alufn[0]) {
+            shift_16.data0 = a
+            shift_16.data1 = c{a[15:0], 16b0}
+            shift_16.s = 32x{b[4]}
+            
+            shift_8.data0 = shift_16.y
+            shift_8.data1 = c{shift_16.y[23:0], 8b0}
+            shift_8.s = 32x{b[3]}
+            
+            shift_4.data0 = shift_8.y
+            shift_4.data1 = c{shift_8.y[27:0], 4b0}
+            shift_4.s = 32x{b[2]}
+            
+            shift_2.data0 = shift_4.y
+            shift_2.data1 = c{shift_4.y[29:0], 2b0}
+            shift_2.s = 32x{b[1]}
+            
+            shift_1.data0 = shift_2.y
+            shift_1.data1 = c{shift_2.y[30:0], b0}
+            shift_1.s = 32x{b[0]}
+        } else if (~alufn[1]) {
+            shift_16.data0 = a
+            shift_16.data1 = c{16b0, a[31:16]}
+            shift_16.s = 32x{b[4]}
+            
+            shift_8.data0 = shift_16.y
+            shift_8.data1 = c{8b0, shift_16.y[31:8]}
+            shift_8.s = 32x{b[3]}
+            
+            shift_4.data0 = shift_8.y
+            shift_4.data1 = c{4b0, shift_8.y[31:4]}
+            shift_4.s = 32x{b[2]}
+            
+            shift_2.data0 = shift_4.y
+            shift_2.data1 = c{2b0, shift_4.y[31:2]}
+            shift_2.s = 32x{b[1]}
+            
+            shift_1.data0 = shift_2.y
+            shift_1.data1 = c{b0, shift_2.y[31:1]}
+            shift_1.s = 32x{b[0]}
+        } else {
+            shift_16.data0 = a
+            shift_16.data1 = c{16x{a[31]}, a[31:16]}
+            shift_16.s = 32x{b[4]}
+            
+            shift_8.data0 = shift_16.y
+            shift_8.data1 = c{8x{a[31]}, shift_16.y[31:8]}
+            shift_8.s = 32x{b[3]}
+            
+            shift_4.data0 = shift_8.y
+            shift_4.data1 = c{4x{a[31]}, shift_8.y[31:4]}
+            shift_4.s = 32x{b[2]}
+            
+            shift_2.data0 = shift_4.y
+            shift_2.data1 = c{2x{a[31]}, shift_4.y[31:2]}
+            shift_2.s = 32x{b[1]}
+            
+            shift_1.data0 = shift_2.y
+            shift_1.data1 = c{a[31], shift_2.y[31:1]}
+            shift_1.s = 32x{b[0]}
+        }
+        shift = shift_1.y
+    } 
+}

@@ -1,0 +1,23 @@
+module compare (
+    input z,
+    input v,
+    input n,
+    input alufn[6],
+    output cmp
+) {
+    
+    mux4to1 mux4to1
+    
+    always {
+        // implement comparison logic here
+        cmp = 0
+        mux4to1.data0 = 0
+        mux4to1.data1 = z
+        mux4to1.data2 = n ^ v
+        mux4to1.data3 = z | (n ^ v)
+        mux4to1.s0 = alufn[1]
+        mux4to1.s1 = alufn[2]
+        
+        cmp = mux4to1.y
+    }
+}

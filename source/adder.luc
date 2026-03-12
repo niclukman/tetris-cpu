@@ -1,0 +1,28 @@
+module adder #(
+    SIZE ~ 32 : SIZE > 1
+)(
+    input a[SIZE],
+    input b[SIZE],
+    input alufn0,
+    output s[SIZE],
+    output z,
+    output v,
+    output n
+) {
+    
+    sig xb[32]
+    
+    rca rca(#SIZE(SIZE))
+    always {
+        // implement adder/subtractor unit logic here        
+        xb = b ^ 32x{alufn0}
+        rca.a = a
+        rca.b = xb
+        rca.cin = alufn0
+        
+        s = rca.s
+        z = ~|(rca.s)
+        v = a[31] & xb[31] & ~rca.s[31] | ~a[31] & ~xb[31] & rca.s[31]
+        n = rca.s[31]
+    }
+}

@@ -1,0 +1,54 @@
+/*
+    Each BG/FG color field is RGB = {R,G,B}, 1 bit per channel
+        000 = black
+        100 = red
+        010 = green
+        001 = blue
+        110 = yellow (red+green)
+        101 = magenta (red+blue)
+        011 = cyan (green+blue)
+        111 = white
+*/
+
+module vga_mem (
+    input xblock[5],
+    input yblock[5],
+    output data[16]
+  ) {
+    
+  always {
+    data[15:14] = 2b00;    // UNUSED
+    data[13:11] = 3b111;   // white FG color field
+    data[10:8]  = 3b000;   // black BG color field
+    data[7:0]   = 8h00; 
+        if (xblock == 0) {
+            data[7:0] = 8h00 // Black bar left
+        } else if (xblock == 1 || xblock == 12) {
+            data[7:0] = 8h02 // Bricks
+        } else if (1 < xblock && xblock < 12) {
+            data[7:0] = 8h01 // Playable Area
+        } else if (xblock == 13) { // Score left
+            case (yblock) {
+                5h0: data[7:0] = 8h0C
+                5h1: data[7:0] = 8h0B
+                5h2: data[7:0] = 8h0B
+                5h3: data[7:0] = 8h0D
+                5h4: data[7:0] = 8h0B
+                5h5: data[7:0] = 8h0B
+                5h6: data[7:0] = 8h0D
+                5h7: data[7:0] = 8h0B
+                5h8: data[7:0] = 8h0B
+                5h9: data[7:0] = 8h0A
+                5hA: data[7:0] = 8h00
+                5hB: data[7:0] = 8h00
+                5hC: data[7:0] = 8h00
+                5hD: data[7:0] = 8h00
+                5hE: data[7:0] = 8h00
+            }
+        } else if (13 < xblock && xblock < 19) { // Score middle
+            
+        } else { // Score right
+            
+        }
+  }
+}

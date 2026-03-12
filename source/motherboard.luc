@@ -1,0 +1,75 @@
+module motherboard (
+    input clk,  // clock
+    input rst,  // reset
+    input irq[3],
+    output led[8]
+) {
+
+    sig mhz_25
+    sig mhz_50
+    
+    counter divider(#SIZE(2), .rst(rst), .clk(clk))
+    edge_detector mhz_25_rise(#RISE(1), #FALL(0), .clk(clk), .in(mhz_25))
+    edge_detector mhz_25_fall(#RISE(0), #FALL(1), .clk(clk), .in(mhz_25))
+
+    // Beta CPU
+    beta_cpu beta(.clk(clk))
+    vga_mem mem
+    vga_text_mode vga(.clk(clk), .rst(rst), .slowclk(mhz_25))
+
+    // setup and instantiate memory unit and instruction ROM
+    const MEMORY_SIZE = 8192
+    shared_ram shared_ram(#WORDS(MEMORY_SIZE), .clk(clk), .rst(rst), .mhz_25(mhz_25), .mhz_50(~mhz_50))
+
+    enum MotherboardStates {INSTRUCTIONLOAD, RUN}
+    dff motherboard[$width(MotherboardStates)](.clk(clk), .rst(rst), #INIT(MotherboardStates.INSTRUCTIONLOAD))
+
+    always {           
+        mhz_25 = divider.value[1]
+        mhz_50 = divider.value[0]
+        beta.irq = |irq // IRQ as long as any of of the buttons[2:0] is pressed
+
+        beta.slowclk = mhz_25_rise.out
+        beta.slowclk_inv = mhz_25_fall.out
+        beta.rst = rst
+
+        // connect memory unit with beta 
+        beta.instruction = shared_ram.id
+        beta.mem_data_input = shared_ram.mrd
+        shared_ram.ia = beta.ia[31:0]
+        shared_ram.we = beta.wr 
+        shared_ram.raddr = beta.mem_data_address[31:0] 
+        shared_ram.waddr = beta.mem_data_address[31:0]
+        shared_ram.wd = beta.mem_data_output
+
+        shared_ram.vga_raddr = h600 + (vga.next_yblock * 12 + vga.next_xblock - 1) * 4
+        mem.xblock = vga.xblock
+        mem.yblock = vga.yblock
+
+        // turn off instruction loading
+        shared_ram.instruction_we = b0
+        shared_ram.instruction_wd = 32b0 
+
+        // Load ROM instructions to RAM first, then run the Beta 
+        case(motherboard.q){
+            // instruction loading
+            MotherboardStates.INSTRUCTIONLOAD:
+                beta.rst = 1
+                motherboard.d = MotherboardStates.RUN
+
+            MotherboardStates.RUN:
+                motherboard.d = MotherboardStates.RUN
+        }
+
+        if (vga.xblock > 1 && vga.xblock < 12) {
+            vga.vga_mem_data = shared_ram.vga_mrd[15:0]
+        } else {
+            vga.vga_mem_data = mem.data
+        }
+
+        led = 8h00
+        led[2:0] = vga.vga_rgb   // SEND OUT VGA SIGNALS
+        led[3]   = vga.vga_hsync // SEND OUT VGA SIGNALS
+        led[4]   = vga.vga_vsync // SEND OUT VGA SIGNALS
+    }
+}

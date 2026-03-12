@@ -1,0 +1,46 @@
+module shared_ram #(
+  WORDS = 16 // default number of words (entries) in the memory
+)(
+    input clk,  // clock
+    input rst,
+    input mhz_50,
+    input mhz_25,
+
+    input ia[$clog2(WORDS)+2], // byte addressing expected
+    input instruction_we,
+    input instruction_wd[32],
+    output id[32],
+
+    input raddr[$clog2(WORDS)+2], // byte addressing expected
+    input waddr[$clog2(WORDS)+2], // byte addressing expected
+    input wd[32], // write data
+    input we,
+    output mrd[32],
+
+    input vga_raddr[$clog2(WORDS)+2],
+    output vga_mrd[32]
+) {
+
+    dff vga_en(.clk(mhz_50))
+    
+    memory_unit memory_unit(#WORDS(WORDS), .clk(mhz_50))
+    reg_en vga_cache(#SIZE(32), .clk(~mhz_50), .rst(rst), .en(vga_en.q))
+
+    always {      
+        vga_en.d = ~mhz_25
+        
+        memory_unit.ia = ia
+        memory_unit.instruction_we = instruction_we
+        memory_unit.instruction_wd = instruction_wd
+        id = memory_unit.id
+        
+        memory_unit.raddr = mhz_25 ? raddr : vga_raddr
+        memory_unit.waddr = waddr
+        memory_unit.wd = wd
+        memory_unit.we = we
+
+        mrd = memory_unit.mrd
+        vga_cache.d = memory_unit.mrd
+        vga_mrd = vga_cache.q
+    }
+}
