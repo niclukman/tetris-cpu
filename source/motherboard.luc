@@ -2,6 +2,7 @@ module motherboard (
     input clk,  // clock
     input rst,  // reset
     input irq[3],
+    output io_led[3][8],
     output led[8]
 ) {
 
@@ -15,11 +16,11 @@ module motherboard (
     // Beta CPU
     beta_cpu beta(.clk(clk))
     vga_mem mem
-    vga_text_mode vga(.clk(clk), .rst(rst), .slowclk(mhz_25))
+    vga_text_mode vga(.clk(clk), .rst(rst), .mhz_25(mhz_25))
 
     // setup and instantiate memory unit and instruction ROM
     const MEMORY_SIZE = 8192
-    shared_ram shared_ram(#WORDS(MEMORY_SIZE), .clk(clk), .rst(rst), .mhz_25(mhz_25), .mhz_50(~mhz_50))
+    shared_ram shared_ram(#WORDS(MEMORY_SIZE), .clk(clk), .rst(rst), .mhz_25(mhz_25), .mhz_50(mhz_50))
 
     enum MotherboardStates {INSTRUCTIONLOAD, RUN}
     dff motherboard[$width(MotherboardStates)](.clk(clk), .rst(rst), #INIT(MotherboardStates.INSTRUCTIONLOAD))
@@ -66,6 +67,10 @@ module motherboard (
         } else {
             vga.vga_mem_data = mem.data
         }
+        
+        io_led[0] = beta.ia[7:0]
+        io_led[1] = beta.ia[15:8]
+        io_led[2] = beta.ia[23:16]
 
         led = 8h00
         led[2:0] = vga.vga_rgb   // SEND OUT VGA SIGNALS

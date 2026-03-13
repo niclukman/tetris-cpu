@@ -37,7 +37,7 @@ module shared_ram #(
         memory_unit.raddr = mhz_25 ? raddr : vga_raddr
         memory_unit.waddr = waddr
         memory_unit.wd = wd
-        memory_unit.we = we
+        memory_unit.we = we & mhz_25
 
         mrd = memory_unit.mrd
         vga_cache.d = memory_unit.mrd

@@ -67,7 +67,7 @@
 module vga_text_mode (
     input clk,  // clock
     input rst,  // reset
-    input slowclk,
+    input mhz_25,
     
     // Holds the character and colors for the selected text cell (vga_mem_address).
     // 16 bit data
@@ -88,6 +88,9 @@ module vga_text_mode (
     sig sig_HSYNC
     sig sig_VSYNC // create my signals
     
+    sig hzcnt_d[12]
+    sig vtcnt_d[12]
+    
     vga_font_rom font_rom
     
     .clk(clk) {
@@ -105,11 +108,14 @@ module vga_text_mode (
         }
     }
     
-    vga_addr_lookahead lookahead(.hzcnt(hzcnt.q), .vtcnt(vtcnt.q))
+    vga_addr_lookahead lookahead(.hzcnt(hzcnt_d), .vtcnt(vtcnt_d))
     
     always {
         // convert level 25Mhz signal into step
-        edges.in = slowclk // 100Mhz -> 25Mhz signal
+        edges.in = mhz_25 // 100Mhz -> 25Mhz signal
+        
+        hzcnt_d = hzcnt.q
+        vtcnt_d = vtcnt.q
         
         // compute which text cell are we in
         // hzcnt.q is the current pixel x position within the full 800-cycle line (front porch, visible, HSYNC, back porch)
@@ -135,21 +141,24 @@ module vga_text_mode (
             if (hzcnt.q > 798) { // End of Line
                 // sets to 0 when hzcnt.q == 799
                 // .q: 0 will take effect at +1 cycle later
-                hzcnt.d = 0
+                hzcnt_d = 0
                 if (vtcnt.q > 523) { // End of Screen 
                     // sets to 0 when hzcnt.q == 524
-                    vtcnt.d = 0
+                    vtcnt_d = 0
                 }else{ 
-                    vtcnt.d = vtcnt.q + 1
+                    vtcnt_d = vtcnt.q + 1
                 }
             }else{
-                hzcnt.d = hzcnt.q + 1
-                vtcnt.d = vtcnt.q
+                hzcnt_d = hzcnt.q + 1
+                vtcnt_d = vtcnt.q
             }
         }else{
-            hzcnt.d = hzcnt.q
-            vtcnt.d = vtcnt.q
+            hzcnt_d = hzcnt.q
+            vtcnt_d = vtcnt.q
         }
+        
+        hzcnt.d = hzcnt_d
+        vtcnt.d = vtcnt_d
         
         if (hzcnt.q > 655 && hzcnt.q < 751) { // HSYNC Logic
             // HSYNC pulse window

@@ -20,52 +20,53 @@ module pc_unit (
     sig pc_4raw[32] // raw pc + 4
     
     always {
-        // default connections to silence errors
-        pc.d = pc.q 
-        pcsel_out_sig = 0
-        pc_4sxtc_sig = 0
-        
+        // connect pc by default
+        pc.d = pc.q
+
         // increment pc by 4
         pc_4raw = pc.q + 4
         pc_4sig = c{pc.q[31], pc_4raw[30:0]}            
         
         // TASK 4
         // shift-and-add pc by 4
-        pc_4sxtc32_sig = pc_4sig + c{14x{id[15]}, id, 2b00}
-        pc_4sxtc_sig = c{pc.q[31], pc_4sxtc32_sig[30:2], 2b00}
+        pc_4sxtc32_sig = pc.q + 4 + (4 * c{16x{id[15]}, id[15:0]})
+        pc_4sxtc_sig = c{pc.q[31], pc_4sxtc32_sig[30:0]}
         
         // TASK 1 
-        // PCSEL mux
-        case (pcsel) {
-            3b100:
-                pcsel_out_sig = 32h80000008
-            3b000:
+        // PCSEL mux 
+        case (pcsel){
+            b000: 
                 pcsel_out_sig = pc_4sig
-            3b001:
+            b001:
                 pcsel_out_sig = pc_4sxtc_sig
-            3b010:
-                pcsel_out_sig = c{pc.q[31] & reg_data_1[31], reg_data_1[30:2], 2b00}
-            3b011:
-                pcsel_out_sig = 32h80000004
+            b010:
+                // JMP mux to protect JT31
+                pcsel_out_sig = c{pc.q[31] & reg_data_1[31], reg_data_1[30:0]}
+            b011:
+                pcsel_out_sig = h80000004 // illop 
+            b100: 
+                pcsel_out_sig = h80000008 // irq 
             default:
                 pcsel_out_sig = pc.q
         }
         
+        // advance the PC only when slowclk is 1 
+        if (slowclk){
+            pc.d = c{pcsel_out_sig[31:2], b00} // setting of pcreg content must happen only when slowclk == 1, don't bring this outside of if (slowclk) clause
+        }
+        
         // Task 2
         // RESET mux 
-        // outside the mux: advance the PC only when slowclk is 1 
-        if (rst) {
-            pc.d = 32h80000000
-        } else if (slowclk) {
-            pc.d = pcsel_out_sig
-        } else {
-            pc.d = pc.q
+        if (rst){
+            pc.d = h80000000 // reset can happen anytime regardless of slowclk
         }
-
+        
         // output connections
         ia = pc.q
         pc_4 =  pc_4sig
         pc_4_sxtc = pc_4sxtc_sig
         pcsel_out = pcsel_out_sig
+        
+        
     }
 }
