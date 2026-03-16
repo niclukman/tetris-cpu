@@ -21,9 +21,12 @@ module motherboard (
     // setup and instantiate memory unit and instruction ROM
     const MEMORY_SIZE = 8192
     shared_ram shared_ram(#WORDS(MEMORY_SIZE), .clk(clk), .rst(rst), .mhz_25(mhz_25), .mhz_50(mhz_50))
-
-    enum MotherboardStates {INSTRUCTIONLOAD, RUN}
+   
+    enum MotherboardStates {INSTRUCTIONLOAD, RUN, END}
     dff motherboard[$width(MotherboardStates)](.clk(clk), .rst(rst), #INIT(MotherboardStates.INSTRUCTIONLOAD))
+    
+    //dff x[4](.clk(clk), .rst(rst), #INIT(0))
+    //dff y[4](.clk(clk), .rst(rst), #INIT(0))
 
     always {           
         mhz_25 = divider.value[1]
@@ -43,7 +46,7 @@ module motherboard (
         shared_ram.waddr = beta.mem_data_address[31:0]
         shared_ram.wd = beta.mem_data_output
 
-        shared_ram.vga_raddr = h600 + (vga.next_yblock * 12 + vga.next_xblock - 1) * 4
+        shared_ram.vga_raddr = $resize(32h1600 + (vga.next_yblock * 12 + vga.next_xblock - 1) * 4, 32)
         mem.xblock = vga.xblock
         mem.yblock = vga.yblock
 
@@ -56,10 +59,31 @@ module motherboard (
             // instruction loading
             MotherboardStates.INSTRUCTIONLOAD:
                 beta.rst = 1
-                motherboard.d = MotherboardStates.RUN
+                motherboard.d = MotherboardStates.RUN // wait one more clock cycle to allow the last instruction to be loaded before start execution
 
             MotherboardStates.RUN:
                 motherboard.d = MotherboardStates.RUN
+            //    if (mhz_25_rise.out) {
+            //        if (y.q > 14) {
+            //            motherboard.d = MotherboardStates.END
+            //        }
+            //
+            //        if (x.q >= 11) {
+            //            x.d = 0
+            //            y.d = y.q + 1
+            //        } else {
+            //            x.d = x.q + 1
+            //            y.d = y.q
+            //        }
+            //
+            //        if (x.q > 0 && x.q < 11 && y.q < 15) {
+            //            shared_ram.waddr = 32h1600 + (y.q * 12 + x.q) * 4 
+            //            shared_ram.we = 1
+            //            shared_ram.wd = 32h3840 + x.q
+            //        }
+            //    }
+            //MotherboardStates.END:
+            //    motherboard.d = MotherboardStates.END
         }
 
         if (vga.xblock > 1 && vga.xblock < 12) {
