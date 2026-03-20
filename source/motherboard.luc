@@ -48,8 +48,24 @@ module motherboard (
         shared_ram.wd = beta.mem_data_output
 
         shared_ram.vga_raddr = $resize(32h1600 + (vga.next_yblock * 12 + vga.next_xblock - 1) * 4, 32)
-        mem.xblock = vga.xblock
-        mem.yblock = vga.yblock
+        shared_ram.button_waddr = 32h1a00
+        shared_ram.button_wd = 0
+        shared_ram.button_we = 0
+        
+        if (buttons[3]) {
+            shared_ram.button_wd = 3
+            shared_ram.button_we = 1
+        }
+        
+        if (buttons[4]) {
+            shared_ram.button_wd = 4
+            shared_ram.button_we = 1
+        }
+        
+        if (buttons[1]) {
+            shared_ram.button_wd = 1
+            shared_ram.button_we = 1
+        }
 
         // turn off instruction loading
         shared_ram.instruction_we = b0
@@ -78,6 +94,8 @@ module motherboard (
             //    motherboard.d = MotherboardStates.END
         }
 
+        mem.xblock = vga.xblock
+        mem.yblock = vga.yblock        
         if (vga.xblock > 1 && vga.xblock < 12) {
             vga.vga_mem_data = shared_ram.vga_mrd[15:0]
         } else {

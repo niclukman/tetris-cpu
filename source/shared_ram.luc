@@ -18,6 +18,9 @@ module shared_ram #(
     output mrd[32],
 
     input vga_raddr[$clog2(WORDS)+2],
+    input button_waddr[$clog2(WORDS)+2],
+    input button_wd[32],
+    input button_we,
     output vga_mrd[32]
 ) {
 
@@ -35,9 +38,9 @@ module shared_ram #(
         id = memory_unit.id
         
         memory_unit.raddr = mhz_25 ? raddr : vga_raddr
-        memory_unit.waddr = waddr
-        memory_unit.wd = wd
-        memory_unit.we = we & mhz_25
+        memory_unit.waddr = mhz_25 ? waddr : button_waddr
+        memory_unit.wd = mhz_25 ? wd : button_wd
+        memory_unit.we = mhz_25 ? we : button_we
 
         mrd = memory_unit.mrd
         vga_cache.d = memory_unit.mrd
