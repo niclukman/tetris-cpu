@@ -2,6 +2,7 @@ module motherboard (
     input clk,  // clock
     input rst,  // reset
     input irq[3],
+    input buttons[5],
     output io_led[3][8],
     output led[8]
 ) {
@@ -64,23 +65,14 @@ module motherboard (
             MotherboardStates.RUN:
                 motherboard.d = MotherboardStates.RUN
             //    if (mhz_25_rise.out) {
-            //        if (y.q > 14) {
+            //        if (x.q > 1024) {
             //            motherboard.d = MotherboardStates.END
             //        }
             //
-            //        if (x.q >= 11) {
-            //            x.d = 0
-            //            y.d = y.q + 1
-            //        } else {
-            //            x.d = x.q + 1
-            //            y.d = y.q
-            //        }
-            //
-            //        if (x.q > 0 && x.q < 11 && y.q < 15) {
-            //            shared_ram.waddr = 32h1600 + (y.q * 12 + x.q) * 4 
-            //            shared_ram.we = 1
-            //            shared_ram.wd = 32h3840 + x.q
-            //        }
+            //        shared_ram.waddr = 32h1000 + x.q * 4 
+            //        shared_ram.we = 1
+            //        shared_ram.wd = 32h3841
+            //        x.d = x.q + 1
             //    }
             //MotherboardStates.END:
             //    motherboard.d = MotherboardStates.END
@@ -95,6 +87,17 @@ module motherboard (
         io_led[0] = beta.ia[7:0]
         io_led[1] = beta.ia[15:8]
         io_led[2] = beta.ia[23:16]
+        
+        if (buttons[1]) {
+            io_led[0] = beta.debug[0][7:0]
+            io_led[1] = beta.debug[0][15:8]
+        }
+        
+        if (buttons[2]) {
+            io_led[0] = beta.control_signals[7:0]
+            io_led[1] = beta.control_signals[15:8]
+            io_led[2] = beta.control_signals[16]
+        }
 
         led = 8h00
         led[2:0] = vga.vga_rgb   // SEND OUT VGA SIGNALS

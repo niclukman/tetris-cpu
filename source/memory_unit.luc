@@ -19,7 +19,7 @@ module memory_unit #(
 
   ) {
 
-  simple_ram instruction_memory(#WIDTH(32), #ENTRIES(WORDS), .clk(clk)); // can fit 32 * WORDS bits 
+  simple_ram instruction_memory(#WIDTH(32), #ENTRIES(2048), .clk(clk)); // can fit 32 * WORDS bits 
   simple_dual_port_ram data_memory(#WIDTH(32), #ENTRIES(WORDS), .wclk(clk), .rclk(clk)); // can fit 32 * WORDS bits 
  
   

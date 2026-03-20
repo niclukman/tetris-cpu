@@ -14,7 +14,8 @@ module control_unit (
     output alufn[6],
     output wdsel[2], 
     output werf,
-    output wr
+    output wr,
+    output control_signals[17]
   ) {
   
   const CU_ROM = { 
@@ -31,7 +32,7 @@ module control_unit (
     b00000011101010110, // OPCODE 0x35 CMPLTC
     b00000011100110110, // OPCODE 0x34 CMPEQC
     b01110000000000010, // OPCODE 0x33 DIVC
-    b01110000000000010, // OPCODE 0x32 MULC
+    b00000010000100110, // OPCODE 0x32 MULC
     b00000010000010110, // OPCODE 0x31 SUBC
     b00000010000000110, // OPCODE 0x30 ADDC
     b01110000000000010, // OPCODE 0x2F (ILLOP)
@@ -47,7 +48,7 @@ module control_unit (
     b00000001101010110, // OPCODE 0x25 CMPLT
     b00000001100110110, // OPCODE 0x24 CMPEQ
     b01110000000000010, // OPCODE 0x23 DIV
-    b01110000000000010, // OPCODE 0x22 MUL
+    b00000000000100110, // OPCODE 0x22 MUL
     b00000000000010110, // OPCODE 0x21 SUB
     b00000000000000110, // OPCODE 0x20 ADD
     b00001000110101010, // OPCODE 0x1F LDR
@@ -102,8 +103,8 @@ module control_unit (
     bsel = CU_ROM[opcode][10]; 
     alufn = CU_ROM[opcode][9:4]; 
     wdsel = CU_ROM[opcode][3:2];  
-    werf= CU_ROM[opcode][1];
-    wr = CU_ROM[opcode][0]; 
+    werf= CU_ROM[opcode][1]; // b000 0 0 0 1 000000 01 1 0, // OPCODE 0x30 ADDC
+    wr = CU_ROM[opcode][0];  // b000 0 0 0 0 110011 01 1 0, // OPCODE 0x24 CMPEQ
     
     // Task 10
     // PCSEL for BNE/BEQ
@@ -132,6 +133,8 @@ module control_unit (
     if (rst){
       wr = 0;
     }
+        
+    control_signals = CU_ROM[opcode]
 
   }
 }
