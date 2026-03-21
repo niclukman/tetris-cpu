@@ -74,8 +74,8 @@ module vga_text_mode (
     // [15:14]= UNUSED, [13:11]=FG COLOR FIELD, [10:8]=BG COLOR FIELD, [7:0]=ASCII
     // Each color field is RGB = {R,G,B}, 1 bit per channel
     input vga_mem_data[16], 
-    output vga_rrrgggbbb[9],
     output vga_rgb[3],
+    output vga_rrrgggbbb[9],
     output vga_hsync,
     output vga_vsync,
     output xblock[5],
@@ -104,6 +104,11 @@ module vga_text_mode (
             dff vtcnt[12](#INIT(0)) // 25Mhz for VGA 480 + 10 +  2 + 33 = 525 rows
         }
     }
+    
+    const S00 = 9b001010001
+    const S01 = 9b010110010
+    const S10 = 9b011111100
+    const S11 = 9b100111110
     
     vga_addr_lookahead lookahead(.hzcnt(hzcnt.q), .vtcnt(vtcnt.q))
     
@@ -169,17 +174,16 @@ module vga_text_mode (
         
         // output RGB only in visible area
         if (hzcnt.q < 640 && vtcnt.q < 480) { // Visible Area
-            // if font_rom says "pixel is on", color it
             if(font_rom.color){
+                vga_rrrgggbbb = S11
                 sig_RGB = vga_mem_data[13:11] // Foreground Color
-                vga_rrrgggbbb = 3x{vga_mem_data[13:11]}
             }else{
+                vga_rrrgggbbb = S00
                 sig_RGB = vga_mem_data[10:8]  // Background Color
-                vga_rrrgggbbb = 3x{vga_mem_data[10:8]}
             }
         }else{
-            sig_RGB = 3b0 // Blanking Area
             vga_rrrgggbbb = 9b0
+            sig_RGB = 3b0 // Blanking Area
         }
         
         // Hacky fix for BGR to RGB

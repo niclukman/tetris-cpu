@@ -17,17 +17,19 @@ module vga_mem (
   ) {
     
   always {
-    data[15:14] = 2b00;    // UNUSED
-    data[13:11] = 3b111;   // white FG color field
-    data[10:8]  = 3b000;   // black BG color field
-    data[7:0]   = 8h00; 
+        data[15:14] = 2b00;    // UNUSED
+        data[13:11] = 3b111;   // white FG color field
+        data[10:8]  = 3b000;   // black BG color field
+        data[7:0]   = 8h00;    // Default black
+        
         if (xblock == 0) {
-            data[7:0] = 8h00 // Black bar left
+            // Black bar left
+            data[7:0] = 8h00 
         } else if (xblock == 1 || xblock == 12) {
-            data[7:0] = 8h02 // Bricks
-        } else if (1 < xblock && xblock < 12) {
-            data[7:0] = 8h01 // Playable Area
-        } else if (xblock == 13) { // Score left
+            // Bricks
+            data[7:0] = 8h02 
+        } else if (xblock == 13) { 
+            // Score leftmost column
             case (yblock) {
                 5h0: data[7:0] = 8h0C
                 5h1: data[7:0] = 8h0B
@@ -39,16 +41,38 @@ module vga_mem (
                 5h7: data[7:0] = 8h0B
                 5h8: data[7:0] = 8h0B
                 5h9: data[7:0] = 8h0A
-                5hA: data[7:0] = 8h00
-                5hB: data[7:0] = 8h00
-                5hC: data[7:0] = 8h00
-                5hD: data[7:0] = 8h00
-                5hE: data[7:0] = 8h00
+                default: data[7:0] = 8h00
             }
-        } else if (13 < xblock && xblock < 19) { // Score middle
-            
-        } else { // Score right
-            
+        } else if (13 < xblock && xblock < 19) { 
+            // Score middle column
+            case (yblock) {
+                5h0: data[7:0] = 8h05
+                5h1: data[7:0] = 8h01
+                5h2: data[7:0] = 8h01
+                5h3: data[7:0] = 8h0E
+                5h4: data[7:0] = 8h01
+                5h5: data[7:0] = 8h01
+                5h6: data[7:0] = 8h0E
+                5h7: data[7:0] = 8h01
+                5h8: data[7:0] = 8h01
+                5h9: data[7:0] = 8h09
+                default: data[7:0] = 8h00
+            }
+        } else { 
+            // Score rightmost column
+            case (yblock) {
+                5h0: data[7:0] = 8h06
+                5h1: data[7:0] = 8h07
+                5h2: data[7:0] = 8h07
+                5h3: data[7:0] = 8h0F
+                5h4: data[7:0] = 8h07
+                5h5: data[7:0] = 8h07
+                5h6: data[7:0] = 8h0F
+                5h7: data[7:0] = 8h07
+                5h8: data[7:0] = 8h07
+                5h9: data[7:0] = 8h08
+                default: data[7:0] = 8h00
+            }
         }
-  }
+    }
 }

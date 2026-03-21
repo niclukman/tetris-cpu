@@ -13,11 +13,24 @@ module motherboard (
     counter divider(#SIZE(2), .rst(rst), .clk(clk))
     edge_detector mhz_25_rise(#RISE(1), #FALL(0), .clk(clk), .in(mhz_25))
     edge_detector mhz_25_fall(#RISE(0), #FALL(1), .clk(clk), .in(mhz_25))
+    
+    const CLK_FREQ = 25000000
+    
+    .clk(mhz_25) {
+        button_conditioner rotate_conditioner(#CLK_FREQ(CLK_FREQ), .in(buttons[1]))
+        button_conditioner left_conditioner(#CLK_FREQ(CLK_FREQ), .in(buttons[3]))
+        button_conditioner right_conditioner(#CLK_FREQ(CLK_FREQ), .in(buttons[4]))
+        
+        edge_detector rotate_button(#RISE(1), #FALL(0), .in(rotate_conditioner.out))
+        edge_detector left_button(#RISE(1), #FALL(0), .in(left_conditioner.out))
+        edge_detector right_button(#RISE(1), #FALL(0), .in(right_conditioner.out))
+    }
 
     // Beta CPU
     beta_cpu beta(.clk(clk))
     vga_mem mem
     vga_text_mode vga(.clk(clk), .rst(rst), .mhz_25(mhz_25))
+    edge_detector vsync_pulse(#RISE(1), #FALL(0), .clk(mhz_25), .in(vga.vga_vsync))
 
     // setup and instantiate memory unit and instruction ROM
     const MEMORY_SIZE = 8192
@@ -48,23 +61,38 @@ module motherboard (
         shared_ram.wd = beta.mem_data_output
 
         shared_ram.vga_raddr = $resize(32h1600 + (vga.next_yblock * 12 + vga.next_xblock - 1) * 4, 32)
-        shared_ram.button_waddr = 32h1a00
-        shared_ram.button_wd = 0
-        shared_ram.button_we = 0
+        shared_ram.second_waddr = 0
+        shared_ram.second_wd = 0
+        shared_ram.second_we = 0
         
-        if (buttons[3]) {
-            shared_ram.button_wd = 3
-            shared_ram.button_we = 1
+        if (buttons[2]) {
+            shared_ram.second_waddr = 32h1a00
+            shared_ram.second_wd = 2
+            shared_ram.second_we = 1
         }
         
-        if (buttons[4]) {
-            shared_ram.button_wd = 4
-            shared_ram.button_we = 1
+        if (left_button.out) {
+            shared_ram.second_waddr = 32h1a00
+            shared_ram.second_wd = 3
+            shared_ram.second_we = 1
         }
         
-        if (buttons[1]) {
-            shared_ram.button_wd = 1
-            shared_ram.button_we = 1
+        if (right_button.out) {
+            shared_ram.second_waddr = 32h1a00
+            shared_ram.second_wd = 4
+            shared_ram.second_we = 1
+        }
+        
+        if (rotate_button.out) {
+            shared_ram.second_waddr = 32h1a00
+            shared_ram.second_wd = 1
+            shared_ram.second_we = 1
+        }
+        
+        if (vsync_pulse.out) {
+            shared_ram.second_waddr = 32h1a04
+            shared_ram.second_wd = 1
+            shared_ram.second_we = 1
         }
 
         // turn off instruction loading
@@ -117,7 +145,9 @@ module motherboard (
             io_led[2] = beta.control_signals[16]
         }
 
-        led = 8h00
+        //io_led[0] = vga.vga_rrrgggbbb[7:0]
+        //io_led[1][0] = vga.vga_rrrgggbbb[8]
+        led = 0
         led[2:0] = vga.vga_rgb   // SEND OUT VGA SIGNALS
         led[3]   = vga.vga_hsync // SEND OUT VGA SIGNALS
         led[4]   = vga.vga_vsync // SEND OUT VGA SIGNALS

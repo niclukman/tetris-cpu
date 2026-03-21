@@ -28,9 +28,8 @@ module alchitry_top (
         io_select = 4h0
         
         led = motherboard.led             // turn LEDs off
+        io_led = motherboard.io_led
         
         usb_tx = usb_rx          // loop serial port
-        io_led = motherboard.io_led
-
     }
 }
