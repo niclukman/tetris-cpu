@@ -15,7 +15,7 @@ module beta_cpu (
 ) {
     
     control_unit control_system(.clk(clk), .rst(rst))
-    alu alu_system
+    alu alu_system(.clk(clk), .slowclk(slowclk), .refresh(rst))
     regfile_unit regfile_system(.clk(clk), .rst(rst))
     pc_unit pc_system(.clk(clk), .rst(rst))
     

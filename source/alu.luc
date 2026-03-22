@@ -1,4 +1,7 @@
 module alu (
+    input clk,
+    input slowclk,
+    input refresh,
     input a[32],
     input b[32],
     input alufn[6],
@@ -16,10 +19,16 @@ module alu (
         }
     }
     
+    sig rng_en
+    
     compare compare(.z(adder.z), .v(adder.v), .n(adder.n), .alufn(alufn))
+    
+    random_number_generator rng(#SIZE(3), .clk(clk), .slow_clk(slowclk), .refresh(refresh))
     
     mux2to1 math[32](.data0(adder.s), .data1(multiplier.mul), .s(32x{alufn[1]}))
     mux4to1 op[32](.data0(math.y), .data1(boolean.bool), .data2(shifter.shift), .data3(c{31b0, compare.cmp}), .s0(32x{alufn[4]}), .s1(32x{alufn[5]}))
+    
+    mux2to1 final_out[32](.data0(op.y), .data1(c{29b0, rng.out}), .s(32x{rng_en}))
     
     always {
         // implement alu logic here
@@ -27,11 +36,13 @@ module alu (
         z = 0
         v = 0 
         n = 0
+        
+        rng_en = &alufn
     
         z = adder.z;
         v = adder.v;
         n = adder.n;
     
-        out = op.y
+        out = final_out.y
     }
 }
