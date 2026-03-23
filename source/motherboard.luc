@@ -34,9 +34,9 @@ module motherboard (
 
     // setup and instantiate memory unit and instruction ROM
     const MEMORY_SIZE = 8192
-    shared_ram shared_ram(#WORDS(MEMORY_SIZE), .clk(clk), .rst(rst), .mhz_25(mhz_25), .mhz_50(mhz_50))
+    shared_ram shared_ram(#WORDS(MEMORY_SIZE), .rst(rst), .mhz_25(mhz_25), .mhz_50(mhz_50))
    
-    enum MotherboardStates {INSTRUCTIONLOAD, RUN, END}
+    enum MotherboardStates {INSTRUCTIONLOAD, RUN}
     dff motherboard[$width(MotherboardStates)](.clk(clk), .rst(rst), #INIT(MotherboardStates.INSTRUCTIONLOAD))
     
     //dff x[4](.clk(clk), .rst(rst), #INIT(0))
@@ -60,7 +60,7 @@ module motherboard (
         shared_ram.waddr = beta.mem_data_address[31:0]
         shared_ram.wd = beta.mem_data_output
 
-        shared_ram.vga_raddr = $resize(32h1600 + (vga.next_yblock * 12 + vga.next_xblock - 1) * 4, 32)
+        shared_ram.vga_raddr = $resize(32h1600 + (vga.yblock * 12 + vga.xblock - 1) * 4, 32)
         shared_ram.second_waddr = 0
         shared_ram.second_wd = 0
         shared_ram.second_we = 0
@@ -101,25 +101,12 @@ module motherboard (
 
         // Load ROM instructions to RAM first, then run the Beta 
         case(motherboard.q){
-            // instruction loading
             MotherboardStates.INSTRUCTIONLOAD:
                 beta.rst = 1
-                motherboard.d = MotherboardStates.RUN // wait one more clock cycle to allow the last instruction to be loaded before start execution
+                motherboard.d = MotherboardStates.RUN
 
             MotherboardStates.RUN:
                 motherboard.d = MotherboardStates.RUN
-            //    if (mhz_25_rise.out) {
-            //        if (x.q > 1024) {
-            //            motherboard.d = MotherboardStates.END
-            //        }
-            //
-            //        shared_ram.waddr = 32h1000 + x.q * 4 
-            //        shared_ram.we = 1
-            //        shared_ram.wd = 32h3841
-            //        x.d = x.q + 1
-            //    }
-            //MotherboardStates.END:
-            //    motherboard.d = MotherboardStates.END
         }
 
         mem.xblock = vga.xblock
@@ -129,24 +116,10 @@ module motherboard (
         } else {
             vga.vga_mem_data = mem.data
         }
-        
-        io_led[0] = beta.ia[7:0]
-        io_led[1] = beta.ia[15:8]
-        io_led[2] = beta.ia[23:16]
-        
-        if (buttons[1]) {
-            io_led[0] = beta.debug[0][7:0]
-            io_led[1] = beta.debug[0][15:8]
-        }
-        
-        if (buttons[2]) {
-            io_led[0] = beta.control_signals[7:0]
-            io_led[1] = beta.control_signals[15:8]
-            io_led[2] = beta.control_signals[16]
-        }
 
-        //io_led[0] = vga.vga_rrrgggbbb[7:0]
-        //io_led[1][0] = vga.vga_rrrgggbbb[8]
+        io_led = 3x{{8h00}}        
+        io_led[0] = vga.vga_rrrgggbbb[7:0]
+        io_led[1][0] = vga.vga_rrrgggbbb[8]
         led = 0
         led[2:0] = vga.vga_rgb   // SEND OUT VGA SIGNALS
         led[3]   = vga.vga_hsync // SEND OUT VGA SIGNALS

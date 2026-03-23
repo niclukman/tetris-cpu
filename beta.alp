@@ -25,12 +25,6 @@
             },
             {
                 "file": {
-                    "type": "DiskFile",
-                    "path": "source/bit_reverse.luc"
-                }
-            },
-            {
-                "file": {
                     "type": "Component",
                     "path": "Miscellaneous/pipeline.luc"
                 }
@@ -93,12 +87,6 @@
                 "file": {
                     "type": "Component",
                     "path": "Miscellaneous/counter.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "Component",
-                    "path": "Miscellaneous/decoder.luc"
                 }
             },
             {
@@ -188,12 +176,6 @@
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/test_beta_cpu.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
                     "path": "source/shared_ram.luc"
                 }
             },
@@ -206,12 +188,6 @@
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/vga_addr_lookahead.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
                     "path": "source/random_number_generator.luc"
                 }
             },
@@ -219,6 +195,12 @@
                 "file": {
                     "type": "DiskFile",
                     "path": "source/pn_gen.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/vga_color_rom.luc"
                 }
             }
         ],

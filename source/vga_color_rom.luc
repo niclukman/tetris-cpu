@@ -1,0 +1,16 @@
+module vga_color_rom (
+    input font[8],
+    output foreground_rrrgggbbb[9],
+    output background_rrrgggbbb[9]
+) {
+    always {
+        case(font) {
+            8h01: 
+                foreground_rrrgggbbb = 9b000000000
+                background_rrrgggbbb = 9b110111100
+            default: 
+                foreground_rrrgggbbb = 9b110111100;
+                background_rrrgggbbb = 9b000000000;
+        }
+    }
+}

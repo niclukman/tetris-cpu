@@ -17,6 +17,7 @@ module vga_mem (
   ) {
     
   always {
+        sig addr_block[9]
         data[15:14] = 2b00;    // UNUSED
         data[13:11] = 3b111;   // white FG color field
         data[10:8]  = 3b000;   // black BG color field
@@ -24,7 +25,7 @@ module vga_mem (
         
         if (xblock == 0) {
             // Black bar left
-            data[7:0] = 8h00 
+            data[7:0] = 8h01 
         } else if (xblock == 1 || xblock == 12) {
             // Bricks
             data[7:0] = 8h02 
@@ -41,22 +42,22 @@ module vga_mem (
                 5h7: data[7:0] = 8h0B
                 5h8: data[7:0] = 8h0B
                 5h9: data[7:0] = 8h0A
-                default: data[7:0] = 8h00
+                default: data[7:0] = 8h01
             }
         } else if (13 < xblock && xblock < 19) { 
             // Score middle column
             case (yblock) {
                 5h0: data[7:0] = 8h05
-                5h1: data[7:0] = 8h01
-                5h2: data[7:0] = 8h01
+                5h1: data[7:0] = 8h00
+                5h2: data[7:0] = 8h00
                 5h3: data[7:0] = 8h0E
-                5h4: data[7:0] = 8h01
-                5h5: data[7:0] = 8h01
+                5h4: data[7:0] = 8h00
+                5h5: data[7:0] = 8h00
                 5h6: data[7:0] = 8h0E
-                5h7: data[7:0] = 8h01
-                5h8: data[7:0] = 8h01
+                5h7: data[7:0] = 8h00
+                5h8: data[7:0] = 8h00
                 5h9: data[7:0] = 8h09
-                default: data[7:0] = 8h00
+                default: data[7:0] = 8h01
             }
         } else { 
             // Score rightmost column
@@ -71,8 +72,27 @@ module vga_mem (
                 5h7: data[7:0] = 8h07
                 5h8: data[7:0] = 8h07
                 5h9: data[7:0] = 8h08
-                default: data[7:0] = 8h00
+                default: data[7:0] = 8h01
             }
+        }
+        
+        addr_block = xblock + yblock * 20
+        case (addr_block) {
+            9d034: data[7:0] = 8h53  // SCORE
+            9d035: data[7:0] = 8h43
+            9d036: data[7:0] = 8h4F
+            9d037: data[7:0] = 8h52
+            9d038: data[7:0] = 8h45
+            9d094: data[7:0] = 8h4C  // LEVEL
+            9d095: data[7:0] = 8h45
+            9d096: data[7:0] = 8h56
+            9d097: data[7:0] = 8h45
+            9d098: data[7:0] = 8h4C
+            9d154: data[7:0] = 8h4C  // LINES
+            9d155: data[7:0] = 8h49
+            9d156: data[7:0] = 8h4E
+            9d157: data[7:0] = 8h45
+            9d158: data[7:0] = 8h53
         }
     }
 }

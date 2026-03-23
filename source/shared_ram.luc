@@ -1,7 +1,6 @@
 module shared_ram #(
   WORDS = 16 // default number of words (entries) in the memory
 )(
-    input clk,  // clock
     input rst,
     input mhz_50,
     input mhz_25,

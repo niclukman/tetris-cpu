@@ -79,9 +79,7 @@ module vga_text_mode (
     output vga_hsync,
     output vga_vsync,
     output xblock[5],
-    output yblock[5],
-    output next_xblock[5],
-    output next_yblock[5]
+    output yblock[5]
 ) {
     
     sig sig_RGB[3]
@@ -89,6 +87,7 @@ module vga_text_mode (
     sig sig_VSYNC // create my signals
     
     vga_font_rom font_rom
+    vga_color_rom color_rom
     
     .clk(~clk) {
         edge_detector edges (#RISE(0), #FALL(1))
@@ -107,10 +106,8 @@ module vga_text_mode (
     
     const S00 = 9b001010001
     const S01 = 9b010110010
-    const S10 = 9b011111100
-    const S11 = 9b100111110
-    
-    vga_addr_lookahead lookahead(.hzcnt(hzcnt.q), .vtcnt(vtcnt.q))
+    const S10 = 9b100111011
+    const S11 = 9b110111100
     
     always {
         // convert level 25Mhz signal into step
@@ -123,11 +120,10 @@ module vga_text_mode (
         // address = tile_x + 20*tile_y ⇒ 0..299
         xblock = hzcnt.q >> 5
         yblock = vtcnt.q >> 5
-        next_xblock = lookahead.xblock
-        next_yblock = lookahead.yblock
         
         // get ascii code for this cell vga_mem_address
         font_rom.asciicode = vga_mem_data[7:0]
+        color_rom.font = vga_mem_data[7:0]
         
         // the rom contains 64 bit data for a 32x32 box, which means that info is condensed into 8x8 glyph
         // for the current screen pixel, the ROM can answer whether the pixel is on/off
@@ -175,9 +171,11 @@ module vga_text_mode (
         // output RGB only in visible area
         if (hzcnt.q < 640 && vtcnt.q < 480) { // Visible Area
             if(font_rom.color){
+                //vga_rrrgggbbb = color_rom.foreground_rrrgggbbb
                 vga_rrrgggbbb = S11
                 sig_RGB = vga_mem_data[13:11] // Foreground Color
             }else{
+                //vga_rrrgggbbb = color_rom.background_rrrgggbbb
                 vga_rrrgggbbb = S00
                 sig_RGB = vga_mem_data[10:8]  // Background Color
             }
