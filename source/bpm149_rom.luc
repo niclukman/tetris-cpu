@@ -1,0 +1,34 @@
+module bpm149_rom (
+    input len[4],
+    output count[32],
+    output ctoff[32]
+) {
+    always {
+        case (len) {
+            d0:
+                count = 0
+                ctoff = 0
+            d1:
+                count =   20134228 // 0.5 count
+                ctoff =   12134228
+            d2:
+                count =   40268456 //   1 count
+                ctoff =   32268456
+            d3:
+                count =   60402684 // 1.5 count
+                ctoff =   52402684
+            d4:
+                count =   80536912 //   2 count
+                ctoff =   72536912
+            d5:
+                count =  161073824 //   4 count
+                ctoff =  153073824
+            d6:
+                count = 1932885888 //  48 count
+                ctoff = 1
+            default: 
+                count = 0
+                ctoff = 0
+        }
+    }
+}

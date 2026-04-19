@@ -1,7 +1,8 @@
 module beta_cpu (
     input clk,  // clock
+    input clk_n,
     input slowclk,
-    input slowclk_inv,
+    //input slowclk_inv,
     input rst,
     input irq,
     input instruction[32],
@@ -16,7 +17,7 @@ module beta_cpu (
     
     control_unit control_system(.clk(clk), .rst(rst))
     alu alu_system(.clk(clk), .slowclk(slowclk), .refresh(rst))
-    regfile_unit regfile_system(.clk(clk), .rst(rst))
+    regfile_unit regfile_system(.clk(clk_n), .rst(rst))
     pc_unit pc_system(.clk(clk), .rst(rst))
     
     sig asel_out[32]
@@ -40,7 +41,7 @@ module beta_cpu (
         pc_system.id = instruction[15:0]
         
         //***** REGFILE unit *****//
-        regfile_system.slowclk = slowclk_inv
+        regfile_system.slowclk = slowclk
         regfile_system.ra2sel = control_system.ra2sel
         regfile_system.wasel = control_system.wasel
         regfile_system.werf = control_system.werf

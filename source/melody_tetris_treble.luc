@@ -1,0 +1,61 @@
+module melody_tetris_treble (
+    input clk,
+    input rst,
+    output ttout
+) {
+    music_tetris_treble_rom ttrbl
+    bpm149_rom ttbeats(.len(ttrbl.beat))
+    note_period_rom ttperiod_rom
+    tone_generator tttone (.clk(clk), .rst(rst), .count(ttperiod_rom.count))
+    
+    dff ttcnt[32] (.clk(clk), .rst(rst))
+    dff ttnum[16] (.clk(clk), .rst(rst))
+    
+    music_tetris_treble_rom2 ttrbl2
+    bpm149_rom ttbeats2(.len(ttrbl2.beat))
+    note_period_rom ttperiod_rom2
+    tone_generator tttone2 (.clk(clk), .rst(rst), .count(ttperiod_rom2.count))
+    
+    dff ttcnt2[32] (.clk(clk), .rst(rst))
+    dff ttnum2[16] (.clk(clk), .rst(rst))
+    
+    always {
+        ttout = tttone.out | tttone2.out
+        
+        ttrbl.num = ttnum.q
+        ttnum.d = ttnum.q
+        ttcnt.d = ttcnt.q + 1
+        ttperiod_rom.note = ttrbl.note
+        
+        if (ttcnt.q > ttbeats.ctoff) {
+            ttperiod_rom.note = 0
+        }
+        
+        if (ttcnt.q > ttbeats.count) {
+            if (ttnum.q == 61) {
+                ttnum.d = 0
+            } else {
+                ttnum.d = ttnum.q + 1
+            }
+            ttcnt.d = 0
+        }
+        
+        ttrbl2.num = ttnum2.q
+        ttnum2.d = ttnum2.q
+        ttcnt2.d = ttcnt2.q + 1
+        ttperiod_rom2.note = ttrbl2.note
+        
+        if (ttcnt2.q > ttbeats2.ctoff) {
+            ttperiod_rom2.note = 0
+        }
+        
+        if (ttcnt2.q > ttbeats2.count) {
+            if (ttnum2.q == 36) {
+                ttnum2.d = 0
+            } else {
+                ttnum2.d = ttnum2.q + 1
+            }
+            ttcnt2.d = 0
+        }
+    }
+}

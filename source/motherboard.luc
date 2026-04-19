@@ -1,71 +1,150 @@
 module motherboard (
     input clk,  // clock
+    input mhz_50,
+    input mhz_25,
+    input mhz_25_n,
+    input mhz_6_25,
+    input mhz_6_25_n,
     input rst,  // reset
     input irq[3],
     input buttons[5],
+    input dip[3][8],
     output io_led[3][8],
     output led[8]
 ) {
-
-    sig mhz_25
-    sig mhz_50
-    
-    counter divider(#SIZE(2), .rst(rst), .clk(clk))
-    edge_detector mhz_25_rise(#RISE(1), #FALL(0), .clk(clk), .in(mhz_25))
-    edge_detector mhz_25_fall(#RISE(0), #FALL(1), .clk(clk), .in(mhz_25))
     
     const CLK_FREQ = 25000000
     
     .clk(mhz_25) {
-        button_conditioner rotate_conditioner(#CLK_FREQ(CLK_FREQ), .in(buttons[1]))
-        button_conditioner left_conditioner(#CLK_FREQ(CLK_FREQ), .in(buttons[3]))
-        button_conditioner right_conditioner(#CLK_FREQ(CLK_FREQ), .in(buttons[4]))
+        button_conditioner rotate_conditioner(#CLK_FREQ(CLK_FREQ), .in(dip[2][0]))
+        button_conditioner left_conditioner(#CLK_FREQ(CLK_FREQ), .in(dip[2][5]))
+        button_conditioner right_conditioner(#CLK_FREQ(CLK_FREQ), .in(dip[1][6]))
+        button_conditioner restart_conditioner(#CLK_FREQ(CLK_FREQ), .in(dip[2][4]))
+        button_conditioner levelup_conditioner(#CLK_FREQ(CLK_FREQ), .in(dip[1][7]))
+        button_conditioner leveldown_conditioner(#CLK_FREQ(CLK_FREQ), .in(dip[2][1]))
+        button_conditioner down_conditioner(#CLK_FREQ(CLK_FREQ), .in(dip[2][2]))
+        button_conditioner hold_conditioner(#CLK_FREQ(CLK_FREQ), .in(dip[2][3]))
         
         edge_detector rotate_button(#RISE(1), #FALL(0), .in(rotate_conditioner.out))
         edge_detector left_button(#RISE(1), #FALL(0), .in(left_conditioner.out))
         edge_detector right_button(#RISE(1), #FALL(0), .in(right_conditioner.out))
+        edge_detector restart_button(#RISE(1), #FALL(0), .in(restart_conditioner.out))
+        edge_detector levelup_button(#RISE(1), #FALL(0), .in(levelup_conditioner.out))
+        edge_detector leveldown_button(#RISE(1), #FALL(0), .in(leveldown_conditioner.out))
     }
+    
+    dff score[17](.clk(mhz_6_25), .rst(rst), #INIT(0))
+    dff level[7](.clk(mhz_6_25), .rst(rst), #INIT(0))
+    dff lines[10](.clk(mhz_6_25), .rst(rst), #INIT(0))
+    dff sprite(.clk(mhz_6_25), .rst(rst), #INIT(0))
 
     // Beta CPU
-    beta_cpu beta(.clk(clk))
-    vga_mem mem
-    vga_text_mode vga(.clk(clk), .rst(rst), .mhz_25(mhz_25))
+    beta_cpu beta(.clk(mhz_6_25), .clk_n(mhz_6_25))
+    vga_mem mem(.score(score.q), .level(level.q), .lines(lines.q))
+    vga_text_mode vga(.rst(rst), .mhz_25(mhz_25), .sprite(sprite.q), .level(level.q))
     edge_detector vsync_pulse(#RISE(1), #FALL(0), .clk(mhz_25), .in(vga.vga_vsync))
 
     // setup and instantiate memory unit and instruction ROM
     const MEMORY_SIZE = 8192
-    shared_ram shared_ram(#WORDS(MEMORY_SIZE), .rst(rst), .mhz_25(mhz_25), .mhz_50(mhz_50))
+    shared_ram shared_ram(#WORDS(MEMORY_SIZE), .rst(rst), .mhz_25(mhz_25), .mhz_50(mhz_50),
+    .mhz_25_n(mhz_25_n))
    
     enum MotherboardStates {INSTRUCTIONLOAD, RUN}
     dff motherboard[$width(MotherboardStates)](.clk(clk), .rst(rst), #INIT(MotherboardStates.INSTRUCTIONLOAD))
     
-    //dff x[4](.clk(clk), .rst(rst), #INIT(0))
-    //dff y[4](.clk(clk), .rst(rst), #INIT(0))
+    melody_tetris_treble mtt(.clk(clk), .rst(rst))
+    melody_tetris_bass mtb(.clk(clk), .rst(rst))
+    melody_never_treble mnt(.clk(clk), .rst(rst))
 
     always {           
-        mhz_25 = divider.value[1]
-        mhz_50 = divider.value[0]
         beta.irq = |irq // IRQ as long as any of of the buttons[2:0] is pressed
 
-        beta.slowclk = mhz_25_rise.out
-        beta.slowclk_inv = mhz_25_fall.out
+        beta.slowclk = 1
         beta.rst = rst
 
         // connect memory unit with beta 
         beta.instruction = shared_ram.id
-        beta.mem_data_input = shared_ram.mrd
+        beta.mem_data_input = shared_ram.cpu_mrd
         shared_ram.ia = beta.ia[31:0]
         shared_ram.we = beta.wr 
         shared_ram.raddr = beta.mem_data_address[31:0] 
         shared_ram.waddr = beta.mem_data_address[31:0]
         shared_ram.wd = beta.mem_data_output
 
-        shared_ram.vga_raddr = $resize(32h1600 + (vga.yblock * 12 + vga.xblock - 1) * 4, 32)
+        shared_ram.vga_raddr = $resize(32h1600 + (vga.next_yblock * 12 + vga.next_xblock - 1) * 4, 32)
         shared_ram.second_waddr = 0
         shared_ram.second_wd = 0
         shared_ram.second_we = 0
         
-        if (buttons[2]) {
+        if (vga.xblock > 11) {
+            if (vga.yblock < 3) {
+                shared_ram.vga_raddr = 32h1a08
+            } else if (vga.yblock < 6) {
+                shared_ram.vga_raddr = 32h1a0c
+            } else if (vga.yblock < 8) {
+                shared_ram.vga_raddr = 32h1a10
+            } else if (vga.yblock < 10) {
+                shared_ram.vga_raddr = 32h1a14
+            }
+            
+            if (vga.yblock < 3) {
+                if (shared_ram.vga_mrd > 99999) {
+                    score.d = 99999
+                } else {
+                    score.d = shared_ram.vga_mrd
+                }
+            } else if (vga.yblock < 6) {
+                if (shared_ram.vga_mrd > 99) {
+                    level.d = 99
+                } else {
+                    level.d = shared_ram.vga_mrd
+                }
+            } else if (vga.yblock < 8) {
+                if (shared_ram.vga_mrd > 999) {
+                    lines.d = 99
+                } else {
+                    lines.d = shared_ram.vga_mrd
+                }
+            } else if (vga.yblock < 10) {
+                sprite.d = shared_ram.vga_mrd
+            }
+        }
+        
+        if (vga.xblock > 13 && vga.xblock < 19 && vga.yblock > 9 && vga.yblock < 14) {
+            shared_ram.vga_raddr = $resize(32h1b00 + ((vga.next_yblock-10) * 4 + vga.next_xblock - 15) * 4, 32)
+        }
+        
+        if (restart_button.out) {
+            shared_ram.second_waddr = 32h1a00
+            shared_ram.second_wd = 101
+            shared_ram.second_we = 1
+        }
+        
+        if (levelup_button.out) {
+            shared_ram.second_waddr = 32h1a00
+            shared_ram.second_wd = 93
+            shared_ram.second_we = 1
+        }
+        
+        if (leveldown_button.out) {
+            shared_ram.second_waddr = 32h1a00
+            shared_ram.second_wd = 112
+            shared_ram.second_we = 1
+        }
+        
+        if (restart_button.out) {
+            shared_ram.second_waddr = 32h1a00
+            shared_ram.second_wd = 101
+            shared_ram.second_we = 1
+        }
+        
+        if (hold_conditioner.out) {
+            shared_ram.second_waddr = 32h1a00
+            shared_ram.second_wd = 39
+            shared_ram.second_we = 1
+        }
+        
+        if (down_conditioner.out) {
             shared_ram.second_waddr = 32h1a00
             shared_ram.second_wd = 2
             shared_ram.second_we = 1
@@ -108,21 +187,37 @@ module motherboard (
             MotherboardStates.RUN:
                 motherboard.d = MotherboardStates.RUN
         }
-
+        
+        
         mem.xblock = vga.xblock
-        mem.yblock = vga.yblock        
+        mem.yblock = vga.yblock
         if (vga.xblock > 1 && vga.xblock < 12) {
+            vga.vga_mem_data = shared_ram.vga_mrd[15:0]
+        } else if (vga.xblock > 14 && vga.xblock < 19 && vga.yblock > 9 && vga.yblock < 14) {
             vga.vga_mem_data = shared_ram.vga_mrd[15:0]
         } else {
             vga.vga_mem_data = mem.data
         }
 
-        io_led = 3x{{8h00}}        
+        io_led = 3x{{8h00}}   
+        led = 0
+        
+        //io_led[2] = beta.ia[11:4]
+        //io_led[1][7:4] = beta.ia[3:0]
+        
+        if (sprite.q == 0) {
+            io_led[2][7] = mtt.ttout
+            io_led[2][6] = mtb.tbout
+        } else if (sprite.q == 1) {
+            io_led[2][7] = mnt.ntout
+        }        
+        
         io_led[0] = vga.vga_rrrgggbbb[7:0]
         io_led[1][0] = vga.vga_rrrgggbbb[8]
-        led = 0
-        led[2:0] = vga.vga_rgb   // SEND OUT VGA SIGNALS
         led[3]   = vga.vga_hsync // SEND OUT VGA SIGNALS
         led[4]   = vga.vga_vsync // SEND OUT VGA SIGNALS
+        led[5]  = clk
+        led[6]  = mhz_50
+        led[7]  = mhz_6_25
     }
 }

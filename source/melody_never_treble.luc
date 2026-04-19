@@ -1,0 +1,34 @@
+module melody_never_treble (
+    input clk,
+    input rst,
+    output ntout
+) {
+    music_never_treble_rom ntrbl
+    bpm114_rom ntbeats(.len(ntrbl.beat))
+    note_period_rom ntperiod_rom
+    tone_generator nttone (.clk(clk), .rst(rst), .count(ntperiod_rom.count))
+    
+    dff ntcnt[32] (.clk(clk), .rst(rst))
+    dff ntnum[16] (.clk(clk), .rst(rst))
+    
+    always {
+        ntrbl.num = ntnum.q
+        ntnum.d = ntnum.q
+        ntcnt.d = ntcnt.q + 1
+        ntout = nttone.out
+        ntperiod_rom.note = ntrbl.note
+        
+        if (ntcnt.q > ntbeats.ctoff) {
+            ntperiod_rom.note = 0
+        }
+        
+        if (ntcnt.q > ntbeats.count) {
+            if (ntnum.q == 55) {
+                ntnum.d = 0
+            } else {
+                ntnum.d = ntnum.q + 1
+            }
+            ntcnt.d = 0
+        }
+    }
+}

@@ -13,11 +13,18 @@ module alchitry_top (
     
     sig rst                 // reset signal
     
-    .clk(clk) {
+    clk_wiz_0 custom_clocks(.clk_in1(clk), .reset(~rst_n))
+    motherboard motherboard(.rst(rst), .irq(0), 
+        .buttons(io_button), .clk(custom_clocks.mhz_100), 
+        .mhz_50(custom_clocks.mhz_50), .mhz_25(custom_clocks.mhz_25), 
+        .mhz_25_n(custom_clocks.mhz_25_n),
+    .mhz_6_25(custom_clocks.mhz_6_25), .mhz_6_25_n(custom_clocks.mhz_6_25_n),
+    .dip(io_dip))
+    
+    .clk(custom_clocks.mhz_100) {
         // The reset conditioner is used to synchronize the reset signal to the FPGA
         // clock. This ensures the entire FPGA comes out of reset at the same time.
         reset_conditioner reset_cond
-        motherboard motherboard(.rst(rst), .irq(io_button[0]), .buttons(io_button))
     }
     
     always {

@@ -58,7 +58,7 @@ module simple_ram #(
     input write_enable                    // write enable (1 = write)
   );
 
-  reg [WIDTH-1:0] ram [ENTRIES-1:0];      // memory array
+  (* ram_style = "block" *) reg [WIDTH-1:0] ram [ENTRIES-1:0];      // memory array
 
   initial begin
     $readmemh("tetris.mem", ram);

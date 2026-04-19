@@ -65,7 +65,7 @@
 */
 
 module vga_text_mode (
-    input clk,  // clock
+    //input clk,  // clock
     input rst,  // reset
     input mhz_25,
     
@@ -73,25 +73,26 @@ module vga_text_mode (
     // 16 bit data
     // [15:14]= UNUSED, [13:11]=FG COLOR FIELD, [10:8]=BG COLOR FIELD, [7:0]=ASCII
     // Each color field is RGB = {R,G,B}, 1 bit per channel
-    input vga_mem_data[16], 
-    output vga_rgb[3],
+    input vga_mem_data[16],
+    input sprite,
+    input level[7],
     output vga_rrrgggbbb[9],
     output vga_hsync,
     output vga_vsync,
     output xblock[5],
-    output yblock[5]
+    output yblock[5],
+    output next_xblock[5],
+    output next_yblock[5]
 ) {
     
-    sig sig_RGB[3]
     sig sig_HSYNC
     sig sig_VSYNC // create my signals
     
-    vga_font_rom font_rom
-    vga_color_rom color_rom
+    vga_font_rom font_rom(.sprite(sprite))
+    vga_color_rom color_rom(.level(level))
+    vga_lookahead lookahead
     
-    .clk(~clk) {
-        edge_detector edges (#RISE(0), #FALL(1))
-        
+    .clk(mhz_25) {        
         .rst(rst) {
            
             // horizxontal pixel pos counter (horizontal timing)
@@ -104,15 +105,7 @@ module vga_text_mode (
         }
     }
     
-    const S00 = 9b001010001
-    const S01 = 9b010110010
-    const S10 = 9b100111011
-    const S11 = 9b110111100
-    
-    always {
-        // convert level 25Mhz signal into step
-        edges.in = mhz_25 // 100Mhz -> 25Mhz signal
-        
+    always {       
         // compute which text cell are we in
         // hzcnt.q is the current pixel x position within the full 800-cycle line (front porch, visible, HSYNC, back porch)
         // hzcnt.q >> 5 divides by 32 --> tile_x (0..19 in visible region)
@@ -120,6 +113,11 @@ module vga_text_mode (
         // address = tile_x + 20*tile_y ⇒ 0..299
         xblock = hzcnt.q >> 5
         yblock = vtcnt.q >> 5
+        
+        lookahead.hzcnt = hzcnt.q
+        lookahead.vtcnt = vtcnt.q
+        next_xblock = lookahead.xblock
+        next_yblock = lookahead.yblock
         
         // get ascii code for this cell vga_mem_address
         font_rom.asciicode = vga_mem_data[7:0]
@@ -132,23 +130,18 @@ module vga_text_mode (
         font_rom.col = (hzcnt.q >> 2) & 3b111 // forces the value to be from 0...7 
         
         // update horizontal and vertical counter only on pixel tick
-        if (edges.out == 1) { // 25Mhz signal
-            if (hzcnt.q > 798) { // End of Line
-                // sets to 0 when hzcnt.q == 799
-                // .q: 0 will take effect at +1 cycle later
-                hzcnt.d = 0
-                if (vtcnt.q > 523) { // End of Screen 
-                    // sets to 0 when hzcnt.q == 524
-                    vtcnt.d = 0
-                }else{ 
-                    vtcnt.d = vtcnt.q + 1
-                }
-            }else{
-                hzcnt.d = hzcnt.q + 1
-                vtcnt.d = vtcnt.q
+        if (hzcnt.q > 798) { // End of Line
+            // sets to 0 when hzcnt.q == 799
+            // .q: 0 will take effect at +1 cycle later
+            hzcnt.d = 0
+            if (vtcnt.q > 523) { // End of Screen 
+                // sets to 0 when hzcnt.q == 524
+                vtcnt.d = 0
+            }else{ 
+                vtcnt.d = vtcnt.q + 1
             }
         }else{
-            hzcnt.d = hzcnt.q
+            hzcnt.d = hzcnt.q + 1
             vtcnt.d = vtcnt.q
         }
         
@@ -170,24 +163,18 @@ module vga_text_mode (
         
         // output RGB only in visible area
         if (hzcnt.q < 640 && vtcnt.q < 480) { // Visible Area
-            if(font_rom.color){
-                //vga_rrrgggbbb = color_rom.foreground_rrrgggbbb
-                vga_rrrgggbbb = S11
-                sig_RGB = vga_mem_data[13:11] // Foreground Color
-            }else{
-                //vga_rrrgggbbb = color_rom.background_rrrgggbbb
-                vga_rrrgggbbb = S00
-                sig_RGB = vga_mem_data[10:8]  // Background Color
+            case (font_rom.color) {
+                2b00: vga_rrrgggbbb = color_rom.rrrgggbbb_00
+                2b01: vga_rrrgggbbb = color_rom.rrrgggbbb_01
+                2b10: vga_rrrgggbbb = color_rom.rrrgggbbb_10
+                2b11: vga_rrrgggbbb = color_rom.rrrgggbbb_11
+                default: vga_rrrgggbbb = 0
             }
         }else{
             vga_rrrgggbbb = 9b0
-            sig_RGB = 3b0 // Blanking Area
         }
         
         // Hacky fix for BGR to RGB
-        vga_rgb[0] = sig_RGB[2]   // SEND OUT SIGNALS
-        vga_rgb[1] = sig_RGB[1]   // SEND OUT SIGNALS
-        vga_rgb[2] = sig_RGB[0]   // SEND OUT SIGNALS
         vga_hsync  = sig_HSYNC    // SEND OUT SIGNALS
         vga_vsync  = sig_VSYNC    // SEND OUT SIGNALS
     }

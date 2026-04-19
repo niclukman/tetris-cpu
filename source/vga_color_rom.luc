@@ -1,16 +1,118 @@
 module vga_color_rom (
     input font[8],
-    output foreground_rrrgggbbb[9],
-    output background_rrrgggbbb[9]
+    input level[3],
+    output rrrgggbbb_00[9],
+    output rrrgggbbb_01[9],
+    output rrrgggbbb_10[9],
+    output rrrgggbbb_11[9]
 ) {
     always {
-        case(font) {
-            8h01: 
-                foreground_rrrgggbbb = 9b000000000
-                background_rrrgggbbb = 9b110111100
-            default: 
-                foreground_rrrgggbbb = 9b110111100;
-                background_rrrgggbbb = 9b000000000;
+        case(level) {
+            default:
+                case(font) {
+                    8h01: 
+                        rrrgggbbb_00 = 9b001010001
+                        rrrgggbbb_01 = 9b000000000
+                        rrrgggbbb_10 = 9b000000000
+                        rrrgggbbb_11 = 9b000000000
+                    default: 
+                        rrrgggbbb_00 = 9b001010001
+                        rrrgggbbb_01 = 9b011011010
+                        rrrgggbbb_10 = 9b100100011
+                        rrrgggbbb_11 = 9b110111100
+                }
+            3d1:
+                case(font) {
+                    8h01: 
+                        rrrgggbbb_00 = 9b101101101
+                        rrrgggbbb_01 = 9b000000000
+                        rrrgggbbb_10 = 9b000000000
+                        rrrgggbbb_11 = 9b000000000
+                    default: 
+                        rrrgggbbb_00 = 9b101101101
+                        rrrgggbbb_01 = 9b010010010
+                        rrrgggbbb_10 = 9b100100100
+                        rrrgggbbb_11 = 9b000000000
+                }
+            3d2:
+                case(font) {
+                    8h01: 
+                        rrrgggbbb_00 = 9b010000001
+                        rrrgggbbb_01 = 9b000000000
+                        rrrgggbbb_10 = 9b000000000
+                        rrrgggbbb_11 = 9b000000000
+                    default: 
+                        rrrgggbbb_00 = 9b010000001
+                        rrrgggbbb_01 = 9b100000000
+                        rrrgggbbb_10 = 9b110001001
+                        rrrgggbbb_11 = 9b110000110
+                }
+            3d3:
+                case(font) {
+                    8h01: 
+                        rrrgggbbb_00 = 9b000000001
+                        rrrgggbbb_01 = 9b000000000
+                        rrrgggbbb_10 = 9b000000000
+                        rrrgggbbb_11 = 9b000000000
+                    default: 
+                        rrrgggbbb_00 = 9b000000001
+                        rrrgggbbb_01 = 9b000010001
+                        rrrgggbbb_10 = 9b000001100
+                        rrrgggbbb_11 = 9b000001110
+                }
+            3d4:
+                case(font) {
+                    8h01: 
+                        rrrgggbbb_00 = 9b101000011
+                        rrrgggbbb_01 = 9b000000000
+                        rrrgggbbb_10 = 9b000000000
+                        rrrgggbbb_11 = 9b000000000
+                    default: 
+                        rrrgggbbb_00 = 9b101000011
+                        rrrgggbbb_01 = 9b111010100
+                        rrrgggbbb_10 = 9b111100101
+                        rrrgggbbb_11 = 9b111111111
+                }
+            3d5:
+                case(font) {
+                    8h01: 
+                        rrrgggbbb_00 = 9b000000010
+                        rrrgggbbb_01 = 9b000000000
+                        rrrgggbbb_10 = 9b000000000
+                        rrrgggbbb_11 = 9b000000000
+                    default: 
+                        rrrgggbbb_00 = 9b000000010
+                        rrrgggbbb_01 = 9b010101110
+                        rrrgggbbb_10 = 9b011101101
+                        rrrgggbbb_11 = 9b101111111
+                }
+            3d6:
+                case(font) {
+                    8h01: 
+                        rrrgggbbb_00 = 9b000000001
+                        rrrgggbbb_01 = 9b000000000
+                        rrrgggbbb_10 = 9b000000000
+                        rrrgggbbb_11 = 9b000000000
+                    default: 
+                        rrrgggbbb_00 = 9b000000001
+                        rrrgggbbb_01 = 9b111110001
+                        rrrgggbbb_10 = 9b010101101
+                        rrrgggbbb_11 = 9b100110111
+                }
+            3d7:
+                case(font) {
+                    8h01: 
+                        rrrgggbbb_00 = 9b001001001
+                        rrrgggbbb_01 = 9b000000000
+                        rrrgggbbb_10 = 9b000000000
+                        rrrgggbbb_11 = 9b000000000
+                    default: 
+                        rrrgggbbb_00 = 9b001001001
+                        rrrgggbbb_01 = 9b111001010
+                        rrrgggbbb_10 = 9b111111111
+                        rrrgggbbb_11 = 9b111101101
+                }
+            
         }
     }
 }

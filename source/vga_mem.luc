@@ -13,11 +13,18 @@
 module vga_mem (
     input xblock[5],
     input yblock[5],
+    input score[17],
+    input level[7],
+    input lines[10],
     output data[16]
   ) {
     
+    sig addr_block[9]
+    bin_to_dec sc(#DIGITS(5), .value(score))
+    bin_to_dec lv(#DIGITS(2), .value(level))
+    bin_to_dec li(#DIGITS(3), .value(lines))
+    
   always {
-        sig addr_block[9]
         data[15:14] = 2b00;    // UNUSED
         data[13:11] = 3b111;   // white FG color field
         data[10:8]  = 3b000;   // black BG color field
@@ -93,6 +100,42 @@ module vga_mem (
             9d156: data[7:0] = 8h4E
             9d157: data[7:0] = 8h45
             9d158: data[7:0] = 8h53
+                
+            // Score Digits - shifts right when 4 digits
+            9d054: data[7:0] = sc.digits[4] < d10 ? 8h30 + sc.digits[4] : 8h00
+            9d055: 
+                if (score < 1000) {
+                    data[7:0] = sc.digits[2] < d10 ? 8h30 + sc.digits[2] : 8h00
+                } else {
+                    data[7:0] = sc.digits[3] < d10 ? 8h30 + sc.digits[3] : 8h00
+                }
+            9d056: 
+                if (score < 1000) {
+                    data[7:0] = sc.digits[1] < d10 ? 8h30 + sc.digits[1] : 8h00
+                } else {
+                    data[7:0] = sc.digits[2] < d10 ? 8h30 + sc.digits[2] : 8h00
+                }
+            9d057: 
+                if (score < 1000) {
+                    data[7:0] = sc.digits[0] < d10 ? 8h30 + sc.digits[0] : 8h00
+                } else {
+                    data[7:0] = sc.digits[1] < d10 ? 8h30 + sc.digits[1] : 8h00
+                }
+            9d058: 
+                if (score < 1000) {
+                    data[7:0] = 8h00
+                } else {
+                    data[7:0] = sc.digits[0] < d10 ? 8h30 + sc.digits[0] : 8h00
+                }
+                
+            // Level Digits
+            9d116: data[7:0] = lv.digits[1] < d10 ? 8h30 + lv.digits[1] : 8h00
+            9d117: data[7:0] = lv.digits[0] < d10 ? 8h30 + lv.digits[0] : 8h00
+                
+            // Lines Digits
+            9d175: data[7:0] = li.digits[2] < d10 ? 8h30 + li.digits[2] : 8h00
+            9d176: data[7:0] = li.digits[1] < d10 ? 8h30 + li.digits[1] : 8h00
+            9d177: data[7:0] = li.digits[0] < d10 ? 8h30 + li.digits[0] : 8h00    
         }
     }
 }

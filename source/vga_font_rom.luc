@@ -9,132 +9,114 @@
 
 module vga_font_rom (
     input asciicode[8],  // clock
+    input sprite,
     input row[3],
     input col[3],
-    output color
+    output color[2]
   ) {
 
-sig font[64];  
+  sig font[128];  
   
   always {
+        case (sprite) {
+            default:
+                case (asciicode) {
+                    // 16x8 glyph for each character (128-bit, each original bit doubled)
+                    default: font = 128h00000000000000000000000000000000; // NOTHING
+                    8h00: font = 128hFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // Bright tiles
+                    8h01: font = 128h00000000000000000000000000000000; // Dark tiles
+                    8h02: font = 128h0000F3F3F3F3F3F300003F3F3F3F3F3F; // TetrisBrick
+                    8h05: font = 128h00000000FFFF00000000000000000000; // TopFrame
+                    8h06: font = 128h0030003C000F00000000000000000000; // TopRightFrame
+                    8h07: font = 128h00300030003000300030003000300030; // RightFrame
+                    8h08: font = 128h00000000000000000000000F003C0030; // BotRightFrame
+                    8h09: font = 128h00000000000000000000FFFF00000000; // BotFrame
+                    8h0A: font = 128h00000000000000000000F0003C000C00; // BotLeftFrame
+                    8h0B: font = 128h0C000C000C000C000C000C000C000C00; // LeftFrame
+                    8h0C: font = 128h0C003C00F00000000000000000000000; // TopLeftFrame
+                    8h0D: font = 128h0C003C00F00000000000F0003C000C00; // MidLeft
+                    8h0E: font = 128h00000000FFFF00000000FFFF00000000; // MidFrame
+                    8h0F: font = 128h0030003C000F00000000000F003C0030; // MidRightFrame
+                    8h10: font = 128h00003FFC300C300C300C300C3FFC0000; // TetrisBlockO
+                    8h11: font = 128h000029981AA829A42AA81A9829A80000; // TetrisBlockI
+                    8h12: font = 128h00002AA8200823C823C820082AA80000; // TetrisBlockJ
+                    8h13: font = 128h00001554155415541554155415540000; // TetrisBlockL
+                    8h14: font = 128h00001554100413C413C4100415540000; // TetrisBlockS
+                    8h15: font = 128h00002AA8200822B822B82FF82AA80000; // TetrisBlockT
+                    8h16: font = 128h00002AA82AA8282828282AA82AA80000; // TetrisBlockZ
+                    8h30: font = 128hFFFFF00FC3C3C3C3C3C3C3C3F00FFFFF; // (0)
+                    8h31: font = 128hFFFFF00FFC3FFC3FFC3FFC0FFC3FFFFF; // (1)
+                    8h32: font = 128hFFFFC003FF03F00FC0FFC0F3F00FFFFF; // (2)
+                    8h33: font = 128hFFFFF003C0FFC0FFF00FC0FFF003FFFF; // (3)
+                    8h34: font = 128hFFFFF0FFC003C0F3F0F3F0C3F00FFFFF; // (4)
+                    8h35: font = 128hFFFFF00FC0F3C0FFF003FFC3F003FFFF; // (5)
+                    8h36: font = 128hFFFFF00FC3C3C3C3F003FFC3F00FFFFF; // (6)
+                    8h37: font = 128hFFFFFC0FFC0FFC3FF0FFC3FFC003FFFF; // (7)
+                    8h38: font = 128hFFFFF00FC0F3C0F3F00FC0F3F00FFFFF; // (8)
+                    8h39: font = 128hFFFFF00FC0FFC00FC0F3C0F3F00FFFFF; // (9)
+                    8h43: font = 128hFFFFF00FC3C3FFC3FFC3C3C3F00FFFFF; // (C)
+                    8h45: font = 128hFFFFC003FFC3FFC3F003FFC3C003FFFF; // (E)
+                    8h49: font = 128hFFFFF00FFC3FFC3FFC3FFC3FF00FFFFF; // (I)
+                    8h4C: font = 128hFFFFC003FFC3FFC3FFC3FFC3FFC3FFFF; // (L)
+                    8h4E: font = 128hFFFFC3F3C3F3C033C303C3C3C3F3FFFF; // (N)
+                    8h4F: font = 128hFFFFF00FC3C3C3C3C3C3C3C3F00FFFFF; // (O)
+                    8h52: font = 128hFFFFC3C3FCC3F003C3C3C3C3F003FFFF; // (R)
+                    8h53: font = 128hFFFFF00FC0F3C0FFF00FFFC3F00FFFFF; // (S)
+                    8h56: font = 128hFFFFFC3FF0CFC3F3C3F3C3F3C3F3FFFF; // (V)
+                    8h57: font = 128hFFFFC00FC3C3C0C3FFF3C3C3F00FFFFF; // (G)
+                    8h58: font = 128hFFFFC3F3C3F3C003C3F3C3F3F00FFFFF; // (A)
+                    8h59: font = 128hFFFFC3F3C3F3C333C003C0C3C3F3FFFF; // (M)
+                }
+            1b1:
+                case (asciicode) {
+                    // 16x8 glyph for each character (128-bit, each original bit doubled)
+                    default: font = 128h00000000000000000000000000000000; // NOTHING
+                    8h00: font = 128hFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // Bright tiles
+                    8h01: font = 128h00000000000000000000000000000000; // Dark tiles
+                    8h02: font = 128h0000F3F3F3F3F3F300003F3F3F3F3F3F; // TetrisBrick
+                    8h05: font = 128h00000000FFFF00000000000000000000; // TopFrame
+                    8h06: font = 128h0030003C000F00000000000000000000; // TopRightFrame
+                    8h07: font = 128h00300030003000300030003000300030; // RightFrame
+                    8h08: font = 128h00000000000000000000000F003C0030; // BotRightFrame
+                    8h09: font = 128h00000000000000000000FFFF00000000; // BotFrame
+                    8h0A: font = 128h00000000000000000000F0003C000C00; // BotLeftFrame
+                    8h0B: font = 128h0C000C000C000C000C000C000C000C00; // LeftFrame
+                    8h0C: font = 128h0C003C00F00000000000000000000000; // TopLeftFrame
+                    8h0D: font = 128h0C003C00F00000000000F0003C000C00; // MidLeft
+                    8h0E: font = 128h00000000FFFF00000000FFFF00000000; // MidFrame
+                    8h0F: font = 128h0030003C000F00000000000F003C0030; // MidRightFrame
+                    8h10: font = 128h00003FFC355C1FF43FFC37DC3FFC0000; // TetrisBlockO
+                    8h11: font = 128h00003FFC1FF4355C3FFC37DC3FFC0000; // TetrisBlockI
+                    8h12: font = 128hF3CFF00FF00FFC3FC3C3C3C3FFFFFFFF; // TetrisBlockJ
+                    8h13: font = 128hFFFFFAAFF14FFAAF3FFCFFFFFFFFFFFF; // TetrisBlockL
+                    8h14: font = 128hF00FF3CFFD7FEBEBFFFF3FFC00000000; // TetrisBlockS
+                    8h15: font = 128hFD7FF96FFD7FE7DBC003FFFFFFFFFFFF; // TetrisBlockT
+                    8h16: font = 128hA14AA00AA00AFEBFCEB3FEBFAAAAAAAA; // TetrisBlockZ
+                    8h30: font = 128hFFFFF00FC3C3C3C3C3C3C3C3F00FFFFF; // (0)
+                    8h31: font = 128hFFFFF00FFC3FFC3FFC3FFC0FFC3FFFFF; // (1)
+                    8h32: font = 128hFFFFC003FF03F00FC0FFC0F3F00FFFFF; // (2)
+                    8h33: font = 128hFFFFF003C0FFC0FFF00FC0FFF003FFFF; // (3)
+                    8h34: font = 128hFFFFF0FFC003C0F3F0F3F0C3F00FFFFF; // (4)
+                    8h35: font = 128hFFFFF00FC0F3C0FFF003FFC3F003FFFF; // (5)
+                    8h36: font = 128hFFFFF00FC3C3C3C3F003FFC3F00FFFFF; // (6)
+                    8h37: font = 128hFFFFFC0FFC0FFC3FF0FFC3FFC003FFFF; // (7)
+                    8h38: font = 128hFFFFF00FC0F3C0F3F00FC0F3F00FFFFF; // (8)
+                    8h39: font = 128hFFFFF00FC0FFC00FC0F3C0F3F00FFFFF; // (9)
+                    8h43: font = 128hFFFFF00FC3C3FFC3FFC3C3C3F00FFFFF; // (C)
+                    8h45: font = 128hFFFFC003FFC3FFC3F003FFC3C003FFFF; // (E)
+                    8h49: font = 128hFFFFF00FFC3FFC3FFC3FFC3FF00FFFFF; // (I)
+                    8h4C: font = 128hFFFFC003FFC3FFC3FFC3FFC3FFC3FFFF; // (L)
+                    8h4E: font = 128hFFFFC3F3C3F3C033C303C3C3C3F3FFFF; // (N)
+                    8h4F: font = 128hFFFFF00FC3C3C3C3C3C3C3C3F00FFFFF; // (O)
+                    8h52: font = 128hFFFFC3C3FCC3F003C3C3C3C3F003FFFF; // (R)
+                    8h53: font = 128hFFFFF00FC0F3C0FFF00FFFC3F00FFFFF; // (S)
+                    8h56: font = 128hFFFFFC3FF0CFC3F3C3F3C3F3C3F3FFFF; // (V)
+                    8h57: font = 128hFFFFC00FC3C3C0C3FFF3C3C3F00FFFFF; // (G)
+                    8h58: font = 128hFFFFC3F3C3F3C003C3F3C3F3F00FFFFF; // (A)
+                    8h59: font = 128hFFFFC3F3C3F3C333C003C0C3C3F3FFFF; // (M)
+                }
+        }
     
-case (asciicode) {
-  // 8x8 glyph for each character     
-  default: font = 64h0; // NOTHING
-  8h00: font = 64hFFFFFFFFFFFFFFFF; // Bright tiles
-  8h01: font = 64h0000000000000000; // Dark tiles
-  8h02: font = 64h00DDDDDD00777777; // TetrisBrick
-  8h03: font = 64h007E425A5A427E00; // TetrisBlock1
-  8h04: font = 64h007E7E66667E7E00; // TetrisBlock2
-  8h05: font = 64h0000FF0000000000; // TopFrame
-  8h06: font = 64h0406030000000000; // TopRightFrame
-  8h07: font = 64h0404040404040404; // RightFrame
-  8h08: font = 64h0000000000030604; // BotRightFrame
-  8h09: font = 64h0000000000FF0000; // BotFrame
-  8h0A: font = 64h0000000000C06020; // BotLeftFrame
-  8h0B: font = 64h2020202020202020; // LeftFrame
-  8h0C: font = 64h2060C00000000000; // TopLeftFrame
-  8h0D: font = 64h2060C00000C06020; // MidLeft
-  8h0E: font = 64h0000FF0000FF0000; // MidFrame
-  8h0F: font = 64h0406030000030604; // MidRightFrame
-  8h13: font = 64h008102E448902141; // RB_SW_EMBLEM
-  8h14: font = 64h0040211308047251; // RB_SE_EMBLEM
-  8h15: font = 64h00081c3e7f7f3600; // MISC_HEART
-  8h21: font = 64h00180018183C3C18; // U+0021 (!)
-  8h22: font = 64h0000000000003636; // U+0022 (")
-  8h23: font = 64h0036367F367F3636; // U+0023 (#)
-  8h24: font = 64h000C1F301E033E0C; // U+0024 ($)
-  8h25: font = 64h0063660C18336300; // U+0025 (%)
-  8h26: font = 64h006E333B6E1C361C; // U+0026 (&)
-  8h27: font = 64h0000000000030606; // U+0027 (')
-  8h28: font = 64h00180C0606060C18; // U+0028 (()
-  8h29: font = 64h00060C1818180C06; // U+0029 ())
-  8h2A: font = 64h0000663CFF3C6600; // U+002A (*)
-  8h2B: font = 64h00000C0C3F0C0C00; // U+002B (+)
-  8h2C: font = 64h060C0C0000000000; // U+002C (,)
-  8h2D: font = 64h000000003F000000; // U+002D (-)
-  8h2E: font = 64h000C0C0000000000; // U+002E (.)
-  8h2F: font = 64h000103060C183060; // U+002F (/)
-  8h30: font = 64hFFC399999999C3FF; // (0)
-  8h31: font = 64hFFC3E7E7E7E3E7FF; // (1)
-  8h32: font = 64hFF81F1C38F8DC3FF; // (2)
-  8h33: font = 64hFFC18F8FC38FC1FF; // (3)
-  8h34: font = 64hFFCF818DCDC9C3FF; // (4)
-  8h35: font = 64hFFC38D8FC1F9C1FF; // (5)
-  8h36: font = 64hFFC39999C1F9C3FF; // (6)
-  8h37: font = 64hFFE3E3E7CF9F81FF; // (7)
-  8h38: font = 64hFFC38D8DC38DC3FF; // (8)
-  8h39: font = 64hFFC38F838D8DC3FF; // (9)
-  8h3A: font = 64h000C0C00000C0C00; // U+003A (:)
-  8h3B: font = 64h060C0C00000C0C00; // U+003B (;)
-  8h3C: font = 64h00180C0603060C18; // U+003C (<)
-  8h3D: font = 64h00003F00003F0000; // U+003D (=)
-  8h3E: font = 64h00060C1830180C06; // U+003E (>)
-  8h3F: font = 64h000C000C1830331E; // U+003F (?)
-  8h40: font = 64h001E037B7B7B633E; // U+0040 (@)
-  8h41: font = 64h0033333F33331E0C; // U+0041 (A)
-  8h42: font = 64h003F66663E66663F; // U+0042 (B)
-  8h43: font = 64hFFC399F9F999C3FF; // (C)
-  8h44: font = 64h001F36666666361F; // U+0044 (D)
-  8h45: font = 64hFF81F9F9C1F981FF; // (E)
-  8h46: font = 64h000F06161E16467F; // U+0046 (F)
-  8h47: font = 64h007C66730303663C; // U+0047 (G)
-  8h48: font = 64h003333333F333333; // U+0048 (H)
-  8h49: font = 64hFFC3E7E7E7E7C3FF; // (I)
-  8h4A: font = 64h001E333330303078; // U+004A (J)
-  8h4B: font = 64h006766361E366667; // U+004B (K)
-  8h4C: font = 64hFF81F9F9F9F9F9FF; // (L)
-  8h4D: font = 64h0063636B7F7F7763; // U+004D (M)
-  8h4E: font = 64hFF9D9D8591999DFF; // (N)
-  8h4F: font = 64hFFC399999999C3FF; // (O)
-  8h50: font = 64h000F06063E66663F; // U+0050 (P)
-  8h51: font = 64h00381E3B3333331E; // U+0051 (Q)
-  8h52: font = 64hFF99E9C19999C1FF; // (R)
-  8h53: font = 64hFFC38D8FC3F9C3FF; // (S)
-  8h54: font = 64h001E0C0C0C0C2D3F; // U+0054 (T)
-  8h55: font = 64h003F333333333333; // U+0055 (U)
-  8h56: font = 64hFFE7CB9D9D9D9DFF; // (V)
-  8h57: font = 64h0063777F6B636363; // U+0057 (W)
-  8h58: font = 64h0063361C1C366363; // U+0058 (X)
-  8h59: font = 64h001E0C0C1E333333; // U+0059 (Y)
-  8h5A: font = 64h007F664C1831637F; // U+005A (Z)
-  8h5B: font = 64h001E06060606061E; // U+005B ([)
-  8h5C: font = 64h00406030180C0603; // U+005C (\)
-  8h5D: font = 64h001E18181818181E; // U+005D (])
-  8h5E: font = 64h0000000063361C08; // U+005E (^)
-  8h5F: font = 64hFF00000000000000; // U+005F (_)
-  8h60: font = 64h0000000000180C0C; // U+0060 (`)
-  8h61: font = 64h006E333E301E0000; // U+0061 (a)
-  8h62: font = 64h003B66663E060607; // U+0062 (b)
-  8h63: font = 64h001E3303331E0000; // U+0063 (c)
-  8h64: font = 64h006E33333e303038; // U+0064 (d)
-  8h65: font = 64h001E033f331E0000; // U+0065 (e)
-  8h66: font = 64h000F06060f06361C; // U+0066 (f)
-  8h67: font = 64h1F303E33336E0000; // U+0067 (g)
-  8h68: font = 64h006766666E360607; // U+0068 (h)
-  8h69: font = 64h001E0C0C0C0E000C; // U+0069 (i)
-  8h6A: font = 64h1E33333030300030; // U+006A (j)
-  8h6B: font = 64h0067361E36660607; // U+006B (k)
-  8h6C: font = 64h001E0C0C0C0C0C0E; // U+006C (l)
-  8h6D: font = 64h00636B7F7F330000; // U+006D (m)
-  8h6E: font = 64h00333333331F0000; // U+006E (n)
-  8h6F: font = 64h001E3333331E0000; // U+006F (o)
-  8h70: font = 64h0F063E66663B0000; // U+0070 (p)
-  8h71: font = 64h78303E33336E0000; // U+0071 (q)
-  8h72: font = 64h000F06666E3B0000; // U+0072 (r)
-  8h73: font = 64h001F301E033E0000; // U+0073 (s)
-  8h74: font = 64h00182C0C0C3E0C08; // U+0074 (t)
-  8h75: font = 64h006E333333330000; // U+0075 (u)
-  8h76: font = 64h000C1E3333330000; // U+0076 (v)
-  8h77: font = 64h00367F7F6B630000; // U+0077 (w)
-  8h78: font = 64h0063361C36630000; // U+0078 (x)
-  8h79: font = 64h1F303E3333330000; // U+0079 (y)
-  8h7A: font = 64h003F260C193F0000; // U+007A (z)
-  8h7B: font = 64h00380C0C070C0C38; // U+007B ({)
-  8h7C: font = 64h0018181800181818; // U+007C (|)
-  8h7D: font = 64h00070C0C380C0C07; // U+007D (})
-  8h7E: font = 64h0000000000003B6E; // U+007E (~)
-}
-    color = font[(row << 3) + col];
-  }
+        color = font[((row << 3) + col) << 1 +: 2];
+    }
 }

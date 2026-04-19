@@ -1,0 +1,62 @@
+module melody_tetris_bass (
+    input clk,
+    input rst,
+    output tbout
+) {
+    music_tetris_bass_rom tbass
+    bpm149_rom tbbeats(.len(tbass.beat))
+    note_period_rom tbperiod_rom
+    tone_generator tbtone (.clk(clk), .rst(rst), .count(tbperiod_rom.count))
+    
+    dff tbcnt[32] (.clk(clk), .rst(rst))
+    dff tbnum[16] (.clk(clk), .rst(rst))
+    
+    music_tetris_bass_rom2 tbass2
+    bpm149_rom tbbeats2(.len(tbass2.beat))
+    note_period_rom tbperiod_rom2
+    tone_generator tbtone2 (.clk(clk), .rst(rst), .count(tbperiod_rom2.count))
+    
+    dff tbcnt2[32] (.clk(clk), .rst(rst))
+    dff tbnum2[16] (.clk(clk), .rst(rst))
+    
+    always {
+        tbout = tbtone.out | tbtone2.out
+        
+        tbass.num = tbnum.q
+        tbnum.d = tbnum.q
+        tbcnt.d = tbcnt.q + 1
+        tbperiod_rom.note = tbass.note
+        
+        if (tbcnt.q > tbbeats.ctoff) {
+            tbperiod_rom.note = 0
+        }
+        
+        if (tbcnt.q > tbbeats.count) {
+            if (tbnum.q == 93) {
+                tbnum.d = 0
+            } else {
+                tbnum.d = tbnum.q + 1
+            }
+            tbcnt.d = 0
+        }
+        
+        
+        tbass2.num = tbnum2.q
+        tbnum2.d = tbnum2.q
+        tbcnt2.d = tbcnt2.q + 1
+        tbperiod_rom2.note = tbass2.note
+        
+        if (tbcnt2.q > tbbeats2.ctoff) {
+            tbperiod_rom2.note = 0
+        }
+        
+        if (tbcnt2.q > tbbeats2.count) {
+            if (tbnum2.q == 73) {
+                tbnum2.d = 0
+            } else {
+                tbnum2.d = tbnum2.q + 1
+            }
+            tbcnt2.d = 0
+        }
+    }
+}

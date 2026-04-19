@@ -1,0 +1,21 @@
+module tone_generator (
+    input clk,  // clock
+    input rst,  // reset
+    input count[32],
+    output out
+) {
+    dff counter[32] (.clk(clk), .rst(rst))
+    
+    always {
+        counter.d = counter.q + 1
+        
+        if (count != 0 && counter.q > count/2) {
+            out = 1
+        } else {
+            out = 0
+        }
+        if (counter.q > count) {
+            counter.d = 0
+        }
+    }
+}

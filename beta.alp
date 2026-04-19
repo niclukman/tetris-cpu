@@ -85,24 +85,6 @@
             },
             {
                 "file": {
-                    "type": "Component",
-                    "path": "Miscellaneous/counter.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
-                    "path": "source/adder.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
-                    "path": "source/multiplier.luc"
-                }
-            },
-            {
-                "file": {
                     "type": "DiskFile",
                     "path": "source/rca.luc"
                 }
@@ -116,18 +98,6 @@
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/boolean.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
-                    "path": "source/shifter.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
                     "path": "source/mux2to1.luc"
                 }
             },
@@ -135,12 +105,6 @@
                 "file": {
                     "type": "DiskFile",
                     "path": "source/mux4to1.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
-                    "path": "source/compare.luc"
                 }
             },
             {
@@ -182,12 +146,6 @@
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/reg_en.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
                     "path": "source/random_number_generator.luc"
                 }
             },
@@ -202,22 +160,151 @@
                     "type": "DiskFile",
                     "path": "source/vga_color_rom.luc"
                 }
-            }
-        ],
-        "constraintFiles": [
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/vga_lookahead.luc"
+                }
+            },
             {
                 "file": {
                     "type": "Component",
-                    "path": "Constraints/io_v1_pulldown.acf"
+                    "path": "Miscellaneous/bin_to_dec.luc"
                 }
             },
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "constraint/alchitry.acf"
+                    "path": "source/melody_tetris_treble.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/music_tetris_treble_rom.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/bpm149_rom.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/note_period_rom.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/tone_generator.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/music_tetris_treble_rom2.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/melody_tetris_bass.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/music_tetris_bass_rom.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/music_tetris_bass_rom2.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/melody_never_treble.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/music_never_treble_rom.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/bpm114_rom.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/adder.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/multiplier.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/boolean.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/compare.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/shifter.luc"
                 }
             }
         ],
-        "ipCores": []
+        "constraintFiles": [
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "constraint/alchitry.acf"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "constraint/io_v1_pulldown.acf"
+                }
+            }
+        ],
+        "ipCores": [
+            {
+                "name": "clk_wiz_0",
+                "stub": {
+                    "file": {
+                        "type": "DiskFile",
+                        "path": "cores/clk_wiz_0/clk_wiz_0_stub.v"
+                    }
+                },
+                "files": [
+                    {
+                        "path": "cores/clk_wiz_0/clk_wiz_0.xci"
+                    }
+                ]
+            }
+        ]
     }
 }
